@@ -14,7 +14,7 @@ interface WelcomeScreenProps {
  * Aurora Pastel Color Palette
  * 
  * Displays a welcome message with a typewriter effect
- * Uses Dancing Script font for elegant handwritten style
+ * Uses Garet font for elegant, modern style
  * Aurora background is now global via layout.tsx
  */
 export function WelcomeScreen({
@@ -50,9 +50,10 @@ export function WelcomeScreen({
       return () => clearTimeout(timeout);
     } else if (currentIndex === message.length && !isComplete) {
       setIsComplete(true);
+      // Wait 10 seconds before navigating to dashboard
       const completeTimeout = setTimeout(() => {
         onComplete();
-      }, 1500);
+      }, 10000);
 
       return () => clearTimeout(completeTimeout);
     }
@@ -62,7 +63,7 @@ export function WelcomeScreen({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Welcome message */}
       <div className="relative text-center animate-fade-in z-10">
-        <h1 className="font-script text-5xl md:text-6xl lg:text-7xl text-primary-700 tracking-wide drop-shadow-sm">
+        <h1 className="font-sans text-5xl md:text-6xl lg:text-7xl font-semibold text-text-primary tracking-wide drop-shadow-sm">
           {displayedText}
           {!isComplete && (
             <span className="inline-block w-0.5 h-8 md:h-10 lg:h-12 bg-primary-600 ml-1 animate-blink" />
