@@ -1,0 +1,103 @@
+import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { 
+  User,
+  Mail,
+  Camera,
+  ArrowLeft
+} from "lucide-react";
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/actions";
+import { UpdateProfileForm } from "./UpdateProfileForm";
+
+/**
+ * Profile Settings Page - Server Component
+ * 
+ * Allows user to update:
+ * - Display name
+ * - Avatar (future: image upload)
+ * - Email display (read-only, managed by Supabase Auth)
+ */
+export default async function PerfilPage() {
+  const user = await getCurrentUser();
+  const displayName = user?.displayName || "Usuario";
+  const email = user?.email || "";
+  const initial = displayName.charAt(0).toUpperCase();
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4 pt-4 pb-2">
+        <Link 
+          href="/configuracion"
+          className="p-2 rounded-xl hover:bg-primary-50 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 text-text-muted" />
+        </Link>
+        <div>
+          <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+            Perfil
+          </h1>
+          <p className="text-text-secondary text-sm">
+            Tu información personal
+          </p>
+        </div>
+      </div>
+
+      {/* Avatar Section */}
+      <GlassCard variant="elevated" className="text-center">
+        <div className="relative inline-block">
+          <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center shadow-glass mx-auto">
+            <span className="text-4xl font-semibold text-white">{initial}</span>
+          </div>
+          <button 
+            className="absolute bottom-0 right-0 p-2 rounded-full bg-white shadow-md hover:bg-primary-50 transition-colors"
+            aria-label="Cambiar avatar"
+          >
+            <Camera className="h-4 w-4 text-primary-600" />
+          </button>
+        </div>
+        <p className="text-sm text-text-muted mt-3">
+          Toca para cambiar tu avatar
+        </p>
+      </GlassCard>
+
+      {/* Profile Form */}
+      <GlassCard variant="default">
+        <GlassCardHeader>
+          <GlassCardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5 text-primary-600" />
+            Información Personal
+          </GlassCardTitle>
+        </GlassCardHeader>
+        <GlassCardContent>
+          <UpdateProfileForm displayName={displayName} email={email} />
+        </GlassCardContent>
+      </GlassCard>
+
+      {/* Account Info */}
+      <GlassCard variant="default">
+        <GlassCardHeader>
+          <GlassCardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary-600" />
+            Cuenta
+          </GlassCardTitle>
+        </GlassCardHeader>
+        <GlassCardContent className="space-y-4">
+          <div>
+            <label className="text-sm text-text-secondary">Email</label>
+            <p className="text-text-primary font-medium">{email}</p>
+          </div>
+          <div>
+            <label className="text-sm text-text-secondary">Proveedor</label>
+            <p className="text-text-primary font-medium">Email / Contraseña</p>
+          </div>
+          <p className="text-xs text-text-muted">
+            El email se gestiona a través de la configuración de seguridad.
+          </p>
+        </GlassCardContent>
+      </GlassCard>
+    </div>
+  );
+}

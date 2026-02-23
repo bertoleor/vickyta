@@ -1,0 +1,234 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+ * Primary Font: Garet (local) - Used for all body text and UI elements
+ * Secondary Fonts (Google): Dancing Script (handwritten), Poppins (display), Quicksand (delicate)
+ */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+/* Base styles */
+body {
+  @apply text-text-primary antialiased;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background: transparent;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  @apply outline-2 outline-primary outline-offset-2;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F2FA;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-400;
+}
+
+/* ===========================================
+   GLASSMORPHISM UTILITIES - Aurora Pastel
+   =========================================== */
+
+@layer components {
+  /* Glass card effect - Base */
+  .glass {
+    background: rgba(255, 255, 255, 0.80);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(217, 194, 234, 0.35);
+  }
+
+  /* Glass card with Lavanda tint */
+  .glass-lavender {
+    background: rgba(217, 194, 234, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(217, 194, 234, 0.30);
+  }
+
+  /* Glass card with Cian Pastel tint - Aurora effect */
+  .glass-cyan {
+    background: rgba(194, 227, 234, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(194, 227, 234, 0.30);
+  }
+
+  /* Glass card with Rosa Viejo tint */
+  .glass-rose {
+    background: rgba(234, 194, 210, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(234, 194, 210, 0.30);
+  }
+
+  /* Elevated glass effect */
+  .glass-elevated {
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(217, 194, 234, 0.40);
+    box-shadow: 0 12px 48px rgba(74, 59, 90, 0.12);
+  }
+
+  /* Floating glass effect */
+  .glass-floating {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    border: 1px solid rgba(217, 194, 234, 0.50);
+    box-shadow: 0 16px 64px rgba(74, 59, 90, 0.16);
+  }
+
+  /* Aurora gradient background */
+  .bg-gradient-aurora {
+    background: linear-gradient(135deg, 
+      #F9F7FD 0%, 
+      #FBF9FD 25%,
+      #F7F9FB 50%,
+      #FBF7F9 75%,
+      #F9F7FD 100%
+    );
+  }
+
+  /* Soft gradient for backgrounds */
+  .bg-gradient-soft {
+    background: linear-gradient(180deg, #F9F7FD 0%, #F5F2FA 100%);
+  }
+
+  /* Aurora boreala effect for cards */
+  .aurora-bg {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .aurora-bg::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(217, 194, 234, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  .aurora-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    left: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(194, 227, 234, 0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Pill button base */
+  .btn-pill {
+    @apply rounded-full px-6 py-3 font-medium transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2;
+  }
+
+  /* iOS-style input */
+  .input-ios {
+    @apply w-full h-12 px-4 py-3 text-base bg-white/80 rounded-2xl;
+    @apply border border-border;
+    @apply placeholder:text-text-muted;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300;
+    @apply transition-all duration-200;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 8px 32px rgba(217, 194, 234, 0.20);
+    transform: translateY(-2px);
+    border-color: rgba(217, 194, 234, 0.50);
+  }
+
+  /* Sidebar backdrop */
+  .sidebar-backdrop {
+    background: rgba(74, 59, 90, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Animations */
+@layer utilities {
+  /* Typewriter cursor */
+  .cursor-blink::after {
+    content: "|";
+    animation: blink 1s infinite;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Press effect for buttons */
+  .press-effect:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Aurora animation keyframes */
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
+/* Script font styling */
+.font-script {
+  font-family: "Dancing Script", "Noteworthy", "Marker Felt", cursive;
+  letter-spacing: 0.02em;
+}
+
+/* Selection color - Aurora pastel */
+::selection {
+  background: rgba(217, 194, 234, 0.40);
+  color: #4A3B5A;
+}
+
+/* Remove autofill background color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.95) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Number input - hide spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
