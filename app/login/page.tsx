@@ -1,22 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input, PINInput } from "@/components/ui/Input";
-import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
-import { WelcomeScreen } from "@/components/ui/WelcomeScreen";
 import { login } from "@/lib/auth/actions";
 import { toast, Toaster } from "sonner";
+import { WelcomeScreen } from "@/components/ui/WelcomeScreen";
 
 /**
- * Login Page - iOS-style authentication
- * Aurora Pastel Color Palette
- * Connected to Supabase Auth
+ * Login Page - Minimalist Design
+ * Slate + Emerald color palette
+ * Connected to Supabase Auth with user mapping
  */
 export default function LoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +41,6 @@ export default function LoginPage() {
 
   const handleWelcomeComplete = () => {
     setShowWelcome(false);
-    // Use window.location for a full page navigation to ensure middleware picks up the session
     window.location.href = "/";
   };
 
@@ -66,76 +61,93 @@ export default function LoginPage() {
         position="top-center"
         toastOptions={{
           style: {
-            background: 'rgba(30, 41, 59, 0.9)',
+            background: '#1e293b',
             color: '#f8fafc',
-            border: '1px solid rgba(200, 182, 226, 0.3)',
-            backdropFilter: 'blur(10px)',
+            border: '1px solid #334155',
           },
         }}
       />
       
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <GlassCard variant="elevated" noHover className="w-full max-w-md relative">
-          <GlassCardHeader className="text-center flex-col">
-            {/* Avatar */}
-            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center shadow-glass">
-              <User className="h-8 w-8 text-white" />
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900">
+        <div className="w-full max-w-sm">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-lg bg-emerald-600 flex items-center justify-center">
+              <Lock className="h-6 w-6 text-white" />
             </div>
-            <GlassCardTitle className="text-2xl">Iniciar Sesion</GlassCardTitle>
-            <p className="text-text-secondary text-sm mt-2">
-              Ingresa tus credenciales para continuar
+            <h1 className="text-xl font-semibold text-slate-100">
+              Iniciar Sesion
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">
+              Ingresa tus credenciales
             </p>
-          </GlassCardHeader>
-          <GlassCardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Username Field */}
-              <Input
-                label="Usuario"
-                type="text"
-                placeholder="Ingresa tu usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                icon={<User className="h-5 w-5" />}
-                variant="glass"
-                required
-                disabled={isLoading}
-                autoComplete="username"
-              />
+          </div>
 
-              {/* PIN Field */}
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-primary">
-                  PIN
-                </label>
-                <PINInput
-                  placeholder="• • • •"
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username Field */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Usuario
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Usuario"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full h-11 pl-10 pr-3 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                />
+              </div>
+            </div>
+
+            {/* PIN Field */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                PIN
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input
+                  type="password"
+                  placeholder="PIN de 6 digitos"
                   value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                  icon={<Lock className="h-5 w-5" />}
-                  variant="glass"
-                  length={6}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="w-full h-11 pl-10 pr-3 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all tracking-widest"
                   required
                   disabled={isLoading}
                   autoComplete="current-password"
+                  maxLength={6}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
-                <p className="mt-1 text-xs text-text-muted">
-                  Ingresa tu PIN de 4 a 6 digitos
-                </p>
               </div>
+              <p className="mt-1.5 text-xs text-slate-500">
+                Ingresa tu PIN de 6 digitos
+              </p>
+            </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                isLoading={isLoading}
-                disabled={isLoading}
-              >
-                Iniciar Sesion
-              </Button>
-            </form>
-          </GlassCardContent>
-        </GlassCard>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+              size="lg"
+              isLoading={isLoading}
+              disabled={isLoading}
+            >
+              Iniciar Sesion
+            </Button>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center text-xs text-slate-600 mt-8">
+            Finance PWA v1.0
+          </p>
+        </div>
       </div>
     </>
   );

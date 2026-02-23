@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+import { addTransaction } from "@/lib/actions/transactions";
 
-/**
- * Telegram Webhook Endpoint
- * 
- * This endpoint receives updates from Telegram Bot API when users send messages to the bot.
- * Security is enforced via a secret token validation.
- * 
- * Endpoint: POST /api/telegram?token=SECRET
- * 
- * Flow:
- * 1. Validate security token
- * 2. Parse incoming message
- * 3. Store in telegram_messages table for processing
- * 4. (Future) Parse expense data and create transaction
- */
+// ============================================
+// CONFIGURATION
+// ============================================
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// Use service role key for bot operations to bypass RLS
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // ============================================
 // TYPES
@@ -44,221 +40,116 @@ interface TelegramMessage {
   chat: TelegramChat;
   date: number;
   text?: string;
-  entities?: Array<{
-    type: string;
-    offset: number;
-    length: number;
-  }>;
+}
+
+interface TelegramCallbackQuery {
+  id: string;
+  from: TelegramUser;
+  message?: TelegramMessage;
+  data?: string;
 }
 
 interface TelegramUpdate {
   update_id: number;
   message?: TelegramMessage;
   edited_message?: TelegramMessage;
-  channel_post?: TelegramMessage;
-  edited_channel_post?: TelegramMessage;
+  callback_query?: TelegramCallbackQuery;
 }
 
-interface PendingMessage {
-  telegram_id: number;
+interface TelegramSession {
+  id?: string;
   chat_id: number;
-  user_id: number | null;
-  username: string | null;
-  first_name: string | null;
-  message_text: string | null;
-  message_date: number;
-  raw_update: object;
-  status: "pending" | "processed" | "error";
+  step: 'START' | 'CATEGORY' | 'METHOD' | 'BANK' | 'INSTALLMENTS' | 'COMPLETE';
+  amount?: number;
+  description?: string;
+  category_id?: string;
+  category_name?: string;
+  method?: string;
+  bank?: string;
+  installments?: number;
+  created_at?: string;
+  updated_at?: string;
 }
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+// Macro categories with their IDs (these should match your database)
+const MACRO_CATEGORIES = [
+  { id: 'cat-super', name: 'Super y Alimentos', emoji: '🛒' },
+  { id: 'cat-trabajo', name: 'Trabajo y Transporte', emoji: '🚗' },
+  { id: 'cat-casa', name: 'Casa y Servicios', emoji: '🏠' },
+  { id: 'cat-extras', name: 'Extras y Hormiga', emoji: '☕' },
+  { id: 'cat-deudas', name: 'Deudas y Bancos', emoji: '🏦' },
+];
+
+const PAYMENT_METHODS = [
+  { id: 'efectivo', name: 'Efectivo', emoji: '💵' },
+  { id: 'debito', name: 'Debito', emoji: '💳' },
+  { id: 'credito', name: 'Credito', emoji: '🏦' },
+  { id: 'qr', name: 'QR', emoji: '📲' },
+  { id: 'transferencia', name: 'Transfer', emoji: '💸' },
+  { id: 'descubierto', name: 'Descubierto', emoji: '📉' },
+];
+
+const BANKS = [
+  { id: 'galicia', name: 'Galicia' },
+  { id: 'nacion', name: 'Nacion' },
+  { id: 'provincia', name: 'Provincia' },
+  { id: 'santander', name: 'Santander' },
+  { id: 'mercadopago', name: 'Mercado Pago' },
+];
+
+const INSTALLMENT_OPTIONS = [1, 3, 6, 12];
 
 // ============================================
 // VALIDATION
 // ============================================
 
-/**
- * Validates the webhook request using a secret token
- * Token can be provided via query parameter or custom header
- */
 function validateRequest(request: NextRequest): boolean {
   const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    console.error("TELEGRAM_WEBHOOK_SECRET is not configured");
-    return false;
-  }
-
-  // Check query parameter
+  if (!webhookSecret) return true; // Skip if not configured
+  
   const url = new URL(request.url);
   const tokenFromQuery = url.searchParams.get("token");
-
-  // Check custom header
   const tokenFromHeader = request.headers.get("x-telegram-webhook-secret");
-
+  
   return tokenFromQuery === webhookSecret || tokenFromHeader === webhookSecret;
 }
 
 // ============================================
-// MESSAGE STORAGE
+// TELEGRAM API
 // ============================================
 
-/**
- * Store incoming message in telegram_messages table for processing
- * @param message - The Telegram message to store
- * @param update - The full update object
- * @returns Success status
- */
-async function storePendingMessage(
-  message: TelegramMessage,
-  update: TelegramUpdate
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const pendingMessage: PendingMessage = {
-      telegram_id: message.message_id,
-      chat_id: message.chat.id,
-      user_id: message.from?.id ?? null,
-      username: message.from?.username ?? null,
-      first_name: message.from?.first_name ?? null,
-      message_text: message.text ?? null,
-      message_date: message.date,
-      raw_update: update,
-      status: "pending",
-    };
-
-    const { error } = await supabase
-      .from("telegram_messages")
-      .insert({
-        telegram_id: pendingMessage.telegram_id,
-        chat_id: pendingMessage.chat_id,
-        user_id: pendingMessage.user_id,
-        username: pendingMessage.username,
-        first_name: pendingMessage.first_name,
-        message_text: pendingMessage.message_text,
-        message_date: pendingMessage.message_date,
-        raw_update: pendingMessage.raw_update,
-        status: pendingMessage.status,
-      });
-
-    if (error) {
-      // If table doesn't exist, log but don't fail
-      if (error.code === "42P01") {
-        console.warn("telegram_messages table does not exist. Message will be logged only.");
-        return { success: true };
-      }
-      console.error("Error storing Telegram message:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true };
-  } catch (err) {
-    console.error("Unexpected error storing message:", err);
-    return { success: false, error: "Unexpected error" };
-  }
-}
-
-// ============================================
-// MESSAGE PARSING (FUTURE IMPLEMENTATION)
-// ============================================
-
-/**
- * Parse expense data from message text
- * 
- * Expected formats:
- * - "500 supermercado" -> amount: 500, description: "supermercado"
- * - "1500 almuerzo con amigos" -> amount: 1500, description: "almuerzo con amigos"
- * - "transferencia 10000 banco efectivo" -> internal transfer
- * 
- * @param text - Message text to parse
- * @returns Parsed expense data or null if invalid
- */
-function parseExpenseMessage(text: string): {
-  amount: number;
-  description: string;
-  type: "gasto" | "ingreso" | "transferencia_interna";
-  destinationHint?: string;
-} | null {
-  // Skip empty or very short messages
-  if (!text || text.length < 3) {
-    return null;
-  }
-
-  // Common patterns:
-  // Pattern 1: "500 descripcion" - number followed by text
-  const expensePattern = /^(\d+(?:[.,]\d+)?)\s+(.+)$/i;
-  const match = text.match(expensePattern);
-
-  if (match) {
-    const amount = parseFloat(match[1].replace(",", "."));
-    const description = match[2].trim();
-
-    // Check for transfer keywords
-    const transferKeywords = ["transferencia", "transfer", "movi", "moví"];
-    const isTransfer = transferKeywords.some(kw => 
-      description.toLowerCase().includes(kw)
-    );
-
-    if (isTransfer) {
-      // Try to extract destination account from description
-      // Format: "transferencia 10000 banco efectivo" or "transfer 5000 a efectivo"
-      const words = description.split(" ");
-      const destinationHint = words.slice(-1)[0]; // Last word as destination hint
-      
-      return {
-        amount,
-        description,
-        type: "transferencia_interna",
-        destinationHint,
-      };
-    }
-
-    // Check for income keywords
-    const incomeKeywords = ["ingreso", "cobro", "sueldo", "pago recibido"];
-    const isIncome = incomeKeywords.some(kw => 
-      description.toLowerCase().includes(kw)
-    );
-
-    return {
-      amount,
-      description,
-      type: isIncome ? "ingreso" : "gasto",
-    };
-  }
-
-  return null;
-}
-
-// ============================================
-// TELEGRAM API HELPERS
-// ============================================
-
-/**
- * Send a message to a Telegram chat
- * @param chatId - The chat ID to send to
- * @param text - The message text
- */
 async function sendTelegramMessage(
   chatId: number,
-  text: string
+  text: string,
+  replyMarkup?: object
 ): Promise<void> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  
   if (!botToken) {
     console.error("TELEGRAM_BOT_TOKEN is not configured");
     return;
   }
 
   try {
+    const body: Record<string, unknown> = {
+      chat_id: chatId,
+      text: text,
+      parse_mode: "HTML",
+    };
+
+    if (replyMarkup) {
+      body.reply_markup = replyMarkup;
+    }
+
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text,
-          parse_mode: "HTML",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       }
     );
 
@@ -270,109 +161,574 @@ async function sendTelegramMessage(
   }
 }
 
+async function answerCallbackQuery(callbackQueryId: string): Promise<void> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) return;
+
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${botToken}/answerCallbackQuery`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: callbackQueryId }),
+      }
+    );
+  } catch (err) {
+    console.error("Error answering callback query:", err);
+  }
+}
+
+// ============================================
+// SESSION MANAGEMENT
+// ============================================
+
+async function getSession(chatId: number): Promise<TelegramSession | null> {
+  const { data, error } = await supabase
+    .from('telegram_sessions')
+    .select('*')
+    .eq('chat_id', chatId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  return data as TelegramSession;
+}
+
+async function createSession(chatId: number): Promise<TelegramSession> {
+  const session: TelegramSession = {
+    chat_id: chatId,
+    step: 'START',
+  };
+
+  const { data, error } = await supabase
+    .from('telegram_sessions')
+    .insert(session)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating session:", error);
+    return session;
+  }
+
+  return data as TelegramSession;
+}
+
+async function updateSession(chatId: number, updates: Partial<TelegramSession>): Promise<void> {
+  await supabase
+    .from('telegram_sessions')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('chat_id', chatId);
+}
+
+async function clearSession(chatId: number): Promise<void> {
+  await supabase
+    .from('telegram_sessions')
+    .delete()
+    .eq('chat_id', chatId);
+}
+
+// ============================================
+// ACCOUNT HELPERS
+// ============================================
+
+async function findAccountByName(name: string, userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id')
+    .eq('user_id', userId)
+    .ilike('name', `%${name}%`)
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  return data.id;
+}
+
+async function getAccountBalance(accountId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('balance')
+    .eq('id', accountId)
+    .single();
+
+  if (error || !data) return 0;
+  return data.balance;
+}
+
+async function getAllAccounts(userId: string) {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id, name, balance, type')
+    .eq('user_id', userId);
+
+  if (error) return [];
+  return data;
+}
+
+// ============================================
+// USER HELPERS
+// ============================================
+
+async function getUserIdByTelegramId(telegramId: number): Promise<string | null> {
+  // For now, return a default user ID
+  // In production, you'd have a telegram_users table mapping telegram_id to user_id
+  const { data, error } = await supabase
+    .from('users')
+    .select('id')
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  return data.id;
+}
+
+// ============================================
+// TRANSACTION HELPERS
+// ============================================
+
+async function getTodayTransactions(userId: string) {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('id, amount, description, date, categories(name)')
+    .eq('user_id', userId)
+    .eq('type', 'gasto')
+    .gte('date', today)
+    .order('created_at', { ascending: false });
+
+  if (error) return [];
+  return data;
+}
+
+async function deleteTransaction(transactionId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('transactions')
+    .delete()
+    .eq('id', transactionId);
+
+  return !error;
+}
+
+// ============================================
+// MESSAGE PARSING
+// ============================================
+
+function parseExpenseMessage(text: string): { amount: number; description: string } | null {
+  if (!text || text.length < 3) return null;
+
+  // Pattern: "500 descripcion" or "1.500 descripcion" or "1,500 descripcion"
+  const expensePattern = /^(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s+(.+)$/i;
+  const match = text.match(expensePattern);
+
+  if (match) {
+    const amount = parseFloat(match[1].replace(/[.,](?=\d{3})/g, '').replace(',', '.'));
+    const description = match[2].trim();
+    
+    return { amount, description };
+  }
+
+  return null;
+}
+
+// ============================================
+// KEYBOARD GENERATORS
+// ============================================
+
+function getCategoryKeyboard(): object {
+  return {
+    inline_keyboard: [
+      ...MACRO_CATEGORIES.map(cat => [{
+        text: `${cat.emoji} ${cat.name}`,
+        callback_data: `cat:${cat.id}`,
+      }]),
+    ],
+  };
+}
+
+function getMethodKeyboard(): object {
+  return {
+    inline_keyboard: [
+      ...PAYMENT_METHODS.map(method => [{
+        text: `${method.emoji} ${method.name}`,
+        callback_data: `method:${method.id}`,
+      }]),
+    ],
+  };
+}
+
+function getBankKeyboard(): object {
+  return {
+    inline_keyboard: [
+      ...BANKS.map(bank => [{
+        text: bank.name,
+        callback_data: `bank:${bank.id}`,
+      }]),
+    ],
+  };
+}
+
+function getInstallmentsKeyboard(): object {
+  return {
+    inline_keyboard: [
+      INSTALLMENT_OPTIONS.map(num => [{
+        text: `${num} cuota${num > 1 ? 's' : ''}`,
+        callback_data: `installments:${num}`,
+      }]),
+    ],
+  };
+}
+
+function getDeleteKeyboard(transactionId: string): object {
+  return {
+    inline_keyboard: [[
+      {
+        text: 'Eliminar',
+        callback_data: `delete:${transactionId}`,
+      },
+    ]],
+  };
+}
+
+// ============================================
+// HANDLERS
+// ============================================
+
+async function handleStartCommand(chatId: number): Promise<void> {
+  await clearSession(chatId);
+  await sendTelegramMessage(
+    chatId,
+    `<b>Hola!</b>\n\n` +
+    `Para registrar un gasto, escribe el monto y descripcion:\n` +
+    `<code>4500 verduleria</code>\n\n` +
+    `Comandos disponibles:\n` +
+    `/hoy - Ver gastos del dia\n` +
+    `/saldos - Ver balances\n` +
+    `/cancelar - Cancelar operacion actual`
+  );
+}
+
+async function handleHoyCommand(chatId: number): Promise<void> {
+  const userId = await getUserIdByTelegramId(chatId);
+  if (!userId) {
+    await sendTelegramMessage(chatId, "No tienes una cuenta vinculada.");
+    return;
+  }
+
+  const transactions = await getTodayTransactions(userId);
+  
+  if (transactions.length === 0) {
+    await sendTelegramMessage(chatId, "No hay gastos registrados hoy.");
+    return;
+  }
+
+  let message = `<b>Gastos de hoy:</b>\n\n`;
+  let total = 0;
+
+  for (const tx of transactions) {
+    const categoryData = tx.categories as unknown as { name: string }[] | null;
+    const category = categoryData?.[0]?.name || 'Sin categoria';
+    message += `${tx.description || 'Sin descripcion'}\n`;
+    message += `  $${tx.amount.toFixed(0)} - ${category}\n`;
+    total += tx.amount;
+  }
+
+  message += `\n<b>Total: $${total.toFixed(0)}</b>`;
+
+  // Send with delete button for last transaction
+  const lastTx = transactions[0];
+  await sendTelegramMessage(
+    chatId,
+    message,
+    getDeleteKeyboard(lastTx.id)
+  );
+}
+
+async function handleSaldosCommand(chatId: number): Promise<void> {
+  const userId = await getUserIdByTelegramId(chatId);
+  if (!userId) {
+    await sendTelegramMessage(chatId, "No tienes una cuenta vinculada.");
+    return;
+  }
+
+  const accounts = await getAllAccounts(userId);
+  
+  if (accounts.length === 0) {
+    await sendTelegramMessage(chatId, "No hay cuentas registradas.");
+    return;
+  }
+
+  let message = `<b>Saldos actuales:</b>\n\n`;
+  let total = 0;
+
+  for (const acc of accounts) {
+    const emoji = acc.type === 'efectivo' ? '💵' : 
+                  acc.type === 'banco' ? '🏦' : 
+                  acc.type === 'billetera_virtual' ? '📲' : '💳';
+    message += `${emoji} ${acc.name}: <b>$${acc.balance.toFixed(0)}</b>\n`;
+    total += acc.balance;
+  }
+
+  message += `\n<b>Total: $${total.toFixed(0)}</b>`;
+
+  await sendTelegramMessage(chatId, message);
+}
+
+async function handleCancelarCommand(chatId: number): Promise<void> {
+  await clearSession(chatId);
+  await sendTelegramMessage(chatId, "Operacion cancelada. Escribe un monto y descripcion para comenzar de nuevo.");
+}
+
+async function handleNewExpense(chatId: number, text: string): Promise<void> {
+  const parsed = parseExpenseMessage(text);
+  
+  if (!parsed) {
+    await sendTelegramMessage(
+      chatId,
+      "No entendi el formato. Escribe:\n<code>MONTO DESCRIPCION</code>\n\nEjemplo: <code>4500 verduleria</code>"
+    );
+    return;
+  }
+
+  // Create or update session
+  let session = await getSession(chatId);
+  if (!session || session.step === 'COMPLETE') {
+    session = await createSession(chatId);
+  }
+
+  await updateSession(chatId, {
+    step: 'CATEGORY',
+    amount: parsed.amount,
+    description: parsed.description,
+  });
+
+  await sendTelegramMessage(
+    chatId,
+    `<b>Gasto:</b> $${parsed.amount.toFixed(0)}\n<b>Descripcion:</b> ${parsed.description}\n\nSelecciona una categoria:`,
+    getCategoryKeyboard()
+  );
+}
+
+async function handleCallback(callback: TelegramCallbackQuery): Promise<void> {
+  const chatId = callback.message?.chat.id;
+  if (!chatId || !callback.data) return;
+
+  await answerCallbackQuery(callback.id);
+
+  const session = await getSession(chatId);
+  if (!session) {
+    await sendTelegramMessage(chatId, "Sesion expirada. Escribe un nuevo gasto para comenzar.");
+    return;
+  }
+
+  const [action, value] = callback.data.split(':');
+
+  switch (action) {
+    case 'cat':
+      await updateSession(chatId, {
+        step: 'METHOD',
+        category_id: value,
+        category_name: MACRO_CATEGORIES.find(c => c.id === value)?.name || 'Categoria',
+      });
+      await sendTelegramMessage(
+        chatId,
+        `Categoria: ${session.category_name || value}\n\nComo pagaste?`,
+        getMethodKeyboard()
+      );
+      break;
+
+    case 'method':
+      const method = value;
+      await updateSession(chatId, { method });
+
+      if (method === 'efectivo') {
+        // Direct save for cash
+        await saveTransaction(chatId, session);
+      } else {
+        // Ask for bank
+        await updateSession(chatId, { step: 'BANK' });
+        await sendTelegramMessage(
+          chatId,
+          "De que banco?",
+          getBankKeyboard()
+        );
+      }
+      break;
+
+    case 'bank':
+      const bank = value;
+      await updateSession(chatId, { bank });
+
+      if (session.method === 'credito') {
+        // Ask for installments
+        await updateSession(chatId, { step: 'INSTALLMENTS' });
+        await sendTelegramMessage(
+          chatId,
+          "En cuantas cuotas?",
+          getInstallmentsKeyboard()
+        );
+      } else {
+        // Save transaction
+        await saveTransaction(chatId, { ...session, bank });
+      }
+      break;
+
+    case 'installments':
+      const installments = parseInt(value);
+      await updateSession(chatId, { installments, step: 'COMPLETE' });
+      await saveTransaction(chatId, { ...session, installments });
+      break;
+
+    case 'delete':
+      const deleted = await deleteTransaction(value);
+      if (deleted) {
+        await sendTelegramMessage(chatId, "Gasto eliminado correctamente.");
+      } else {
+        await sendTelegramMessage(chatId, "No se pudo eliminar el gasto.");
+      }
+      break;
+  }
+}
+
+async function saveTransaction(chatId: number, session: TelegramSession): Promise<void> {
+  const userId = await getUserIdByTelegramId(chatId);
+  if (!userId) {
+    await sendTelegramMessage(chatId, "Error: Usuario no encontrado.");
+    return;
+  }
+
+  // Find account
+  let accountId: string | null = null;
+  
+  if (session.method === 'efectivo') {
+    accountId = await findAccountByName('efectivo', userId);
+  } else if (session.bank) {
+    accountId = await findAccountByName(session.bank, userId);
+  }
+
+  if (!accountId) {
+    // Fallback: get first account
+    const accounts = await getAllAccounts(userId);
+    if (accounts.length > 0) {
+      accountId = accounts[0].id;
+    }
+  }
+
+  if (!accountId) {
+    await sendTelegramMessage(chatId, "Error: No hay cuentas disponibles.");
+    return;
+  }
+
+  // Create transaction using the server action
+  const transactionData = {
+    user_id: userId,
+    account_id: accountId,
+    amount: session.amount || 0,
+    description: session.description || '',
+    type: 'gasto' as const,
+    method: (session.method || 'efectivo') as 'efectivo' | 'debito' | 'credito' | 'qr' | 'transferencia' | 'descubierto',
+    date: new Date().toISOString().split('T')[0],
+    category_id: session.category_id || null,
+    is_installment: session.method === 'credito' && session.installments ? true : false,
+    current_installment: session.method === 'credito' && session.installments ? 1 : null,
+    total_installments: session.method === 'credito' && session.installments ? session.installments : null,
+  };
+
+  try {
+    const result = await addTransaction(transactionData);
+    
+    if (result.error) {
+      await sendTelegramMessage(chatId, `Error al guardar: ${result.error}`);
+      return;
+    }
+
+    // Success message
+    let message = `Gasto guardado!\n\n`;
+    message += `$${session.amount?.toFixed(0)} - ${session.description}\n`;
+    message += `Categoria: ${session.category_name || 'Sin categoria'}\n`;
+    message += `Metodo: ${session.method}`;
+    
+    if (session.installments && session.installments > 1) {
+      message += ` (${session.installments} cuotas)`;
+    }
+
+    await sendTelegramMessage(chatId, message);
+    await updateSession(chatId, { step: 'COMPLETE' });
+    
+  } catch (error) {
+    console.error("Error saving transaction:", error);
+    await sendTelegramMessage(chatId, "Error al guardar el gasto. Intenta de nuevo.");
+  }
+}
+
 // ============================================
 // MAIN HANDLER
 // ============================================
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate security token
     if (!validateRequest(request)) {
-      console.warn("Unauthorized webhook request - invalid token");
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse the request body
     const body: TelegramUpdate = await request.json();
+    console.log("Telegram webhook received:", JSON.stringify(body, null, 2));
 
-    // Log the received message for debugging
-    console.log("Telegram webhook received:", {
-      update_id: body.update_id,
-      message_id: body.message?.message_id,
-      from: body.message?.from?.username || body.message?.from?.first_name,
-      chat_id: body.message?.chat.id,
-      text: body.message?.text,
-      date: body.message?.date,
-    });
-
-    // Process the message
-    const message = body.message || body.edited_message;
-    
-    if (message) {
-      // Store message in database for later processing
-      const storeResult = await storePendingMessage(message, body);
-      
-      if (!storeResult.success) {
-        console.error("Failed to store message:", storeResult.error);
-      }
-
-      // Process text messages
-      if (message.text) {
-        console.log("Message text to process:", message.text);
-        
-        // Try to parse expense data
-        const parsedData = parseExpenseMessage(message.text);
-        
-        if (parsedData) {
-          console.log("Parsed expense data:", parsedData);
-          
-          // TODO: In future, implement full flow:
-          // 1. Get user by telegram_id from profiles table
-          // 2. Get default account for user
-          // 3. Create transaction using addTransaction action
-          // 4. Send confirmation message
-          
-          // For now, just acknowledge receipt
-          const typeLabels = {
-            gasto: "Gasto",
-            ingreso: "Ingreso",
-            transferencia_interna: "Transferencia",
-          };
-          
-          await sendTelegramMessage(
-            message.chat.id,
-            `✅ Mensaje recibido\n\n` +
-            `Tipo: ${typeLabels[parsedData.type]}\n` +
-            `Monto: $${parsedData.amount.toFixed(2)}\n` +
-            `Descripción: ${parsedData.description}\n\n` +
-            `_Pendiente de procesamiento_`
-          );
-        } else {
-          // Message couldn't be parsed as expense
-          await sendTelegramMessage(
-            message.chat.id,
-            `📝 Mensaje recibido pero no pude interpretarlo como gasto.\n\n` +
-            `Formato esperado: <code>MONTO DESCRIPCIÓN</code>\n` +
-            `Ejemplo: <code>500 supermercado</code>`
-          );
-        }
-      }
+    // Handle callback queries
+    if (body.callback_query) {
+      await handleCallback(body.callback_query);
+      return NextResponse.json({ ok: true });
     }
 
-    // Return success response to Telegram
-    return NextResponse.json({ ok: true }, { status: 200 });
+    // Handle messages
+    const message = body.message || body.edited_message;
+    if (!message?.text) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const chatId = message.chat.id;
+    const text = message.text.trim();
+
+    // Handle commands
+    if (text.startsWith('/')) {
+      const command = text.toLowerCase().split(' ')[0];
+      
+      switch (command) {
+        case '/start':
+          await handleStartCommand(chatId);
+          break;
+        case '/hoy':
+          await handleHoyCommand(chatId);
+          break;
+        case '/saldos':
+          await handleSaldosCommand(chatId);
+          break;
+        case '/cancelar':
+          await handleCancelarCommand(chatId);
+          break;
+        default:
+          await sendTelegramMessage(chatId, "Comando no reconocido. Usa /start para ver los comandos disponibles.");
+      }
+      
+      return NextResponse.json({ ok: true });
+    }
+
+    // Handle expense input
+    await handleNewExpense(chatId, text);
+    return NextResponse.json({ ok: true });
 
   } catch (error) {
-    // Handle unexpected errors
     console.error("Error processing Telegram webhook:", error);
-
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : "Internal server error";
-
     return NextResponse.json(
-      { error: errorMessage },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }
     );
   }
 }
 
-/**
- * Handle unsupported HTTP methods
- */
 export async function GET() {
   return NextResponse.json(
     { error: "Method not allowed. Use POST." },

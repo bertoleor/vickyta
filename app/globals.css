@@ -54,42 +54,42 @@ body {
 
   /* Glass card with Lavanda tint */
   .glass-lavender {
-    background: rgba(217, 194, 234, 0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(217, 194, 234, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(217, 194, 234, 0.30);
   }
 
   /* Glass card with Cian Pastel tint - Aurora effect */
   .glass-cyan {
-    background: rgba(194, 227, 234, 0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(194, 227, 234, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(194, 227, 234, 0.30);
   }
 
   /* Glass card with Rosa Viejo tint */
   .glass-rose {
-    background: rgba(234, 194, 210, 0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(234, 194, 210, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(234, 194, 210, 0.30);
   }
 
   /* Elevated glass effect */
   .glass-elevated {
-    background: rgba(255, 255, 255, 0.90);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(217, 194, 234, 0.40);
     box-shadow: 0 12px 48px rgba(74, 59, 90, 0.12);
   }
 
   /* Floating glass effect */
   .glass-floating {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(217, 194, 234, 0.50);
     box-shadow: 0 16px 64px rgba(74, 59, 90, 0.16);
   }
@@ -191,7 +191,7 @@ body {
   }
 }
 
-/* Aurora animation keyframes */
+/* Refined Aurora Boreal Animation */
 @keyframes aurora {
   from {
     background-position: 50% 50%, 50% 50%;
