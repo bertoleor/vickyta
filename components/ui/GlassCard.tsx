@@ -66,16 +66,6 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       xl: "backdrop-blur-xl",
     };
 
-    const getBlurValue = (blurSize: "sm" | "md" | "lg" | "xl") => {
-      switch (blurSize) {
-        case "sm": return 8;
-        case "md": return 16;
-        case "lg": return 20;
-        case "xl": return 32;
-        default: return 20;
-      }
-    };
-
     return (
       <div
         ref={ref}
@@ -88,10 +78,6 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           blurValues[blur],
           className
         )}
-        style={{
-          WebkitBackdropFilter: `blur(${getBlurValue(blur)}px)`,
-          backdropFilter: `blur(${getBlurValue(blur)}px)`,
-        }}
         {...props}
       >
         {/* Noise texture overlay for depth */}

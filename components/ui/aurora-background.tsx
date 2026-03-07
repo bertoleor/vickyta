@@ -44,7 +44,7 @@ export const AuroraBackground = ({
               showRadialGradient &&
                 `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`
             )}
-            style={{
+            style={{ // NOSONAR
               "--blue": "#66a3ff",
               "--indigo": "#a29bfe",
               "--violet": "#d6a2f7",

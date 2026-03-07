@@ -86,7 +86,7 @@ export async function getAccountSummary(userId: string): Promise<ApiResponse<Acc
 
     // Group by type
     const byType = typedAccounts.reduce((acc, account) => {
-      const type = account.type as AccountType;
+      const type = account.type;
       if (!acc[type]) {
         acc[type] = 0;
       }

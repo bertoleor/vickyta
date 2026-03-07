@@ -31,6 +31,8 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
+  TrendingDown,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 

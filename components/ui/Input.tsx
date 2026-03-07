@@ -27,7 +27,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
  */
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, icon, variant = "default", id, ...props }, ref) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
+    const inputId = id || label?.toLowerCase().replaceAll(/\s+/g, "-");
 
     const variants = {
       default: [
@@ -77,7 +77,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               error && "border-accent-400 focus:border-accent-500 focus:ring-accent-200",
               className
             )}
-            aria-invalid={error ? "true" : "false"}
+            aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : undefined}
             {...props}
           />

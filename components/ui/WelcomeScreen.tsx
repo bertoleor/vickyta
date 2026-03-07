@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 
 interface WelcomeScreenProps {
-  message: string;
-  onComplete: () => void;
-  typingSpeed?: number;
-  delay?: number;
+  readonly message: string;
+  readonly onComplete: () => void;
+  readonly typingSpeed?: number;
+  readonly delay?: number;
 }
 
 /**

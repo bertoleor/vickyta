@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 
 interface GreetingProps {
-  name: string;
-  className?: string;
+  readonly name: string;
+  readonly className?: string;
 }
 
 /**
