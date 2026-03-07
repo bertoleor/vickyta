@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   CreditCard,
@@ -75,7 +75,6 @@ const navItems: NavItem[] = [
  */
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<{ displayName: string } | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);

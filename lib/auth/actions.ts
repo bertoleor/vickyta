@@ -34,12 +34,14 @@ const USER_MAP: Record<string, { email: string; displayName: string }> = {
  * @param formData - Form data with 'username' and 'pin' fields
  * @returns Error message or redirects on success
  */
-export async function login(formData: FormData): Promise<{ error?: string } | never> {
+export async function login(formData: FormData): Promise<{ error?: string } | void> {
   const supabase = await createClient();
 
   // Extract form values
-  const username = formData.get('username')?.toString().toLowerCase().trim();
-  const pin = formData.get('pin')?.toString();
+  const usernameEntry = formData.get('username');
+  const pinEntry = formData.get('pin');
+  const username = typeof usernameEntry === 'string' ? usernameEntry.toLowerCase().trim() : '';
+  const pin = typeof pinEntry === 'string' ? pinEntry : '';
 
   // Validate inputs
   if (!username || !pin) {
@@ -107,7 +109,7 @@ export async function getCurrentUser(): Promise<{
     if (!displayName) {
       displayName = 'Usuario';
       
-      for (const [key, value] of Object.entries(USER_MAP)) {
+      for (const [, value] of Object.entries(USER_MAP)) {
         if (value.email === user.email) {
           displayName = value.displayName;
           break;

@@ -66,6 +66,16 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       xl: "backdrop-blur-xl",
     };
 
+    const getBlurValue = (blurSize: "sm" | "md" | "lg" | "xl") => {
+      switch (blurSize) {
+        case "sm": return 8;
+        case "md": return 16;
+        case "lg": return 20;
+        case "xl": return 32;
+        default: return 20;
+      }
+    };
+
     return (
       <div
         ref={ref}
@@ -79,24 +89,15 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           className
         )}
         style={{
-          WebkitBackdropFilter: `blur(${blur === "sm" ? 8 : blur === "md" ? 16 : blur === "lg" ? 20 : 32}px)`,
+          WebkitBackdropFilter: `blur(${getBlurValue(blur)}px)`,
+          backdropFilter: `blur(${getBlurValue(blur)}px)`,
         }}
         {...props}
       >
         {/* Noise texture overlay for depth */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay glass-noise" />
         {/* Glass reflection effect */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.15]"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, transparent 100%)",
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.15] glass-reflection" />
         {/* Content */}
         <div className="relative z-10">
           {children}

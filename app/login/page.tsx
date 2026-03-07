@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   const handleWelcomeComplete = () => {
     setShowWelcome(false);
-    window.location.href = "/";
+    globalThis.location.href = "/";
   };
 
   if (showWelcome) {
@@ -87,7 +87,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-1.5">
                 Usuario
               </label>
               <div className="relative">
@@ -101,13 +101,14 @@ export default function LoginPage() {
                   required
                   disabled={isLoading}
                   autoComplete="username"
+                  id="username"
                 />
               </div>
             </div>
 
             {/* PIN Field */}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="pin" className="block text-sm font-medium text-slate-300 mb-1.5">
                 PIN
               </label>
               <div className="relative">
@@ -116,7 +117,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="PIN de 6 digitos"
                   value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) => setPin(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
                   className="w-full h-11 pl-10 pr-3 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all tracking-widest"
                   required
                   disabled={isLoading}
@@ -124,6 +125,7 @@ export default function LoginPage() {
                   maxLength={6}
                   inputMode="numeric"
                   pattern="[0-9]*"
+                  id="pin"
                 />
               </div>
               <p className="mt-1.5 text-xs text-slate-500">

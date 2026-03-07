@@ -1,5 +1,4 @@
-import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
+import { GlassCard, GlassCardContent } from "@/components/ui/GlassCard";
 import { 
   History, 
   TrendingDown,
@@ -63,6 +62,18 @@ export default async function HistorialPage() {
   // Sort dates descending
   const sortedDates = Object.keys(groupedHistory).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
+  const getTransactionTypeLabel = (type: string) => {
+    if (type === "ingreso") return "Ingreso";
+    if (type === "transferencia_interna") return "Transferencia";
+    return "Gasto";
+  };
+
+  const getTransactionColor = (type: string) => {
+    if (type === "ingreso") return "text-green-600";
+    if (type === "transferencia_interna") return "text-blue-600";
+    return "text-red-600";
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
@@ -119,14 +130,10 @@ export default async function HistorialPage() {
                       {item.description || "Sin descripción"}
                     </p>
                     <p className="text-xs text-text-muted capitalize">
-                      {item.type === "ingreso" ? "Ingreso" : 
-                       item.type === "transferencia_interna" ? "Transferencia" : "Gasto"}
+                      {getTransactionTypeLabel(item.type)}
                     </p>
                   </div>
-                  <div className={`text-sm font-semibold ${
-                    item.type === "ingreso" ? "text-green-600" : 
-                    item.type === "transferencia_interna" ? "text-blue-600" : "text-red-600"
-                  }`}>
+                  <div className={`text-sm font-semibold ${getTransactionColor(item.type)}`}>
                     {item.type === "ingreso" ? "+" : "-"}{formatCurrency(item.amount)}
                   </div>
                 </div>

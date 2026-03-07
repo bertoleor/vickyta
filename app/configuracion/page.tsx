@@ -1,7 +1,6 @@
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { 
-  Settings, 
   User,
   Bell,
   Palette,

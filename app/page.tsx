@@ -7,7 +7,6 @@ import {
   Sparkles, 
   TrendingDown, 
   TrendingUp, 
-  Plus,
   ChevronRight,
   MessageCircle
 } from "lucide-react";
@@ -66,6 +65,16 @@ export default async function DashboardPage() {
     percentage: totalCategoryAmount > 0 ? Math.round((cat.total / totalCategoryAmount) * 100) : 0,
     color: getCategoryColor(cat.category_name),
   }));
+
+  const getTransactionTypeColor = (type: string) => {
+    if (type === 'ingreso') return 'text-green-600';
+    if (type === 'gasto') return 'text-red-600';
+    return 'text-blue-600';
+  };
+
+  const getTransactionTypeSign = (type: string) => {
+    return type === 'ingreso' ? '+' : '-';
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -145,8 +154,8 @@ export default async function DashboardPage() {
                     {formatCurrency(tx.amount)} • {new Date(tx.date).toLocaleDateString('es-AR')}
                   </p>
                 </div>
-                <div className={`text-sm font-medium ${tx.type === 'ingreso' ? 'text-green-600' : tx.type === 'gasto' ? 'text-red-600' : 'text-blue-600'}`}>
-                  {tx.type === 'ingreso' ? '+' : '-'}{formatCurrency(tx.amount)}
+                <div className={`text-sm font-medium ${getTransactionTypeColor(tx.type)}`}>
+                  {getTransactionTypeSign(tx.type)}{formatCurrency(tx.amount)}
                 </div>
               </div>
             ))}
@@ -174,8 +183,8 @@ export default async function DashboardPage() {
             </GlassCardTitle>
           </GlassCardHeader>
           <GlassCardContent className="space-y-3">
-            {weeklySummary.map((item, index) => (
-              <div key={index} className="space-y-1">
+            {weeklySummary.map((item) => (
+              <div key={item.category} className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{item.category}</span>
                   <span className="text-text-muted">{item.percentage}%</span>

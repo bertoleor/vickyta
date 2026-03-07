@@ -2,8 +2,6 @@ import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/
 import { Button } from "@/components/ui/Button";
 import { ExpenseFormCard } from "@/components/ui/ExpenseFormCard";
 import { 
-  CreditCard, 
-  Plus, 
   ChevronRight,
   Package
 } from "lucide-react";
@@ -44,11 +42,6 @@ export default async function GastosPage() {
     }
     expensesByCategory.get(catId)!.push(expense);
   });
-
-  // Get category by ID helper
-  const getCategoryById = (id: string): Category | undefined => {
-    return categories.find(c => c.id === id);
-  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

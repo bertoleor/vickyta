@@ -63,7 +63,7 @@ export function ThemeSelector() {
       root.classList.remove("dark", "light");
       
       // Apply system preference
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const isDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
       root.classList.add(isDark ? "dark" : "light");
     } else {
       root.classList.remove("dark", "light");

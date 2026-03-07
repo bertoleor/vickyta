@@ -27,6 +27,10 @@ import {
   Building2,
   Smartphone,
   PiggyBank,
+  ArrowRightLeft,
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -114,31 +118,31 @@ export const ACCOUNT_TYPE_CONFIG: Record<string, {
   banco: {
     label: 'Banco',
     labelPlural: 'Bancos',
-    icon: BankIcon,
+    icon: Building2,
     color: 'text-blue-600',
   },
   billetera_virtual: {
     label: 'Billetera Virtual',
     labelPlural: 'Billeteras Virtuales',
-    icon: WalletIcon,
+    icon: Smartphone,
     color: 'text-purple-600',
   },
   efectivo: {
     label: 'Efectivo',
     labelPlural: 'Efectivo',
-    icon: CashIcon,
+    icon: Banknote,
     color: 'text-green-600',
   },
   tarjeta_credito: {
     label: 'Tarjeta de Crédito',
     labelPlural: 'Tarjetas de Crédito',
-    icon: CardIcon,
+    icon: CreditCard,
     color: 'text-orange-600',
   },
   deuda_fiado: {
     label: 'Deuda/Fiado',
     labelPlural: 'Deudas y Fiados',
-    icon: DebtIcon,
+    icon: PiggyBank,
     color: 'text-red-600',
   },
 };
@@ -228,12 +232,6 @@ export function getPaymentMethodConfig(method: string) {
 // TRANSACTION TYPE CONFIGURATION
 // ============================================
 
-import {
-  TrendingDown,
-  TrendingUp,
-  ArrowRightLeft,
-} from 'lucide-react';
-
 /**
  * Transaction type display configuration
  */
@@ -280,12 +278,6 @@ export function getTransactionTypeConfig(type: string) {
 // ============================================
 // TRAFFIC LIGHT CONFIGURATION
 // ============================================
-
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-} from 'lucide-react';
 
 /**
  * Traffic light tag configuration (Economía de Guerra)

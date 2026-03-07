@@ -2,9 +2,6 @@ import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/
 import { 
   Palette,
   ArrowLeft,
-  Sun,
-  Moon,
-  Monitor,
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
