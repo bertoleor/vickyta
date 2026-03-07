@@ -1,6 +1,4 @@
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { 
   User,
   Mail,
@@ -86,11 +84,11 @@ export default async function PerfilPage() {
         </GlassCardHeader>
         <GlassCardContent className="space-y-4">
           <div>
-            <label className="text-sm text-text-secondary">Email</label>
+            <p className="text-sm text-text-secondary">Email</p>
             <p className="text-text-primary font-medium">{email}</p>
           </div>
           <div>
-            <label className="text-sm text-text-secondary">Proveedor</label>
+            <p className="text-sm text-text-secondary">Proveedor</p>
             <p className="text-text-primary font-medium">Email / Contraseña</p>
           </div>
           <p className="text-xs text-text-muted">

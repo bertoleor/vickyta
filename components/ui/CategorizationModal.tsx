@@ -106,17 +106,11 @@ export function CategorizationModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        role="button"
-        tabIndex={0}
+      <button 
+        type="button"
         aria-label="Cerrar modal"
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm border-none ring-0 w-full h-full cursor-default"
         onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-            onClose();
-          }
-        }}
       />
       
       {/* Modal */}

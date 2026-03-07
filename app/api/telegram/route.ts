@@ -322,10 +322,10 @@ function parseExpenseMessage(text: string): { amount: number; description: strin
 
   // Pattern: "500 descripcion" or "1.500 descripcion" or "1,500 descripcion"
   const expensePattern = /^(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s+(.+)$/i;
-  const match = text.match(expensePattern);
+  const match = expensePattern.exec(text);
 
   if (match) {
-    const amount = parseFloat(match[1].replace(/[.,](?=\d{3})/g, '').replace(',', '.'));
+    const amount = Number.parseFloat(match[1].replace(/[.,](?=\d{3})/g, '').replaceAll(',', '.'));
     const description = match[2].trim();
     
     return { amount, description };
@@ -465,9 +465,10 @@ async function handleSaldosCommand(chatId: number): Promise<void> {
   let total = 0;
 
   for (const acc of accounts) {
-    const emoji = acc.type === 'efectivo' ? '💵' : 
-                  acc.type === 'banco' ? '🏦' : 
-                  acc.type === 'billetera_virtual' ? '📲' : '💳';
+    let emoji = '💳';
+    if (acc.type === 'efectivo') emoji = '💵';
+    else if (acc.type === 'banco') emoji = '🏦';
+    else if (acc.type === 'billetera_virtual') emoji = '📲';
     message += `${emoji} ${acc.name}: <b>$${acc.balance.toFixed(0)}</b>\n`;
     total += acc.balance;
   }
@@ -494,9 +495,9 @@ async function handleNewExpense(chatId: number, text: string): Promise<void> {
   }
 
   // Create or update session
-  let session = await getSession(chatId);
+  const session = await getSession(chatId);
   if (!session || session.step === 'COMPLETE') {
-    session = await createSession(chatId);
+    await createSession(chatId);
   }
 
   await updateSession(chatId, {
@@ -540,7 +541,7 @@ async function handleCallback(callback: TelegramCallbackQuery): Promise<void> {
       );
       break;
 
-    case 'method':
+    case 'method': {
       const method = value;
       await updateSession(chatId, { method });
 
@@ -557,8 +558,9 @@ async function handleCallback(callback: TelegramCallbackQuery): Promise<void> {
         );
       }
       break;
+    }
 
-    case 'bank':
+    case 'bank': {
       const bank = value;
       await updateSession(chatId, { bank });
 
@@ -575,14 +577,16 @@ async function handleCallback(callback: TelegramCallbackQuery): Promise<void> {
         await saveTransaction(chatId, { ...session, bank });
       }
       break;
+    }
 
-    case 'installments':
-      const installments = parseInt(value);
+    case 'installments': {
+      const installments = Number.parseInt(value, 10);
       await updateSession(chatId, { installments, step: 'COMPLETE' });
       await saveTransaction(chatId, { ...session, installments });
       break;
+    }
 
-    case 'delete':
+    case 'delete': {
       const deleted = await deleteTransaction(value);
       if (deleted) {
         await sendTelegramMessage(chatId, "Gasto eliminado correctamente.");
@@ -590,17 +594,11 @@ async function handleCallback(callback: TelegramCallbackQuery): Promise<void> {
         await sendTelegramMessage(chatId, "No se pudo eliminar el gasto.");
       }
       break;
+    }
   }
 }
 
-async function saveTransaction(chatId: number, session: TelegramSession): Promise<void> {
-  const userId = await getUserIdByTelegramId(chatId);
-  if (!userId) {
-    await sendTelegramMessage(chatId, "Error: Usuario no encontrado.");
-    return;
-  }
-
-  // Find account
+async function resolveAccountId(userId: string, session: TelegramSession): Promise<string | null> {
   let accountId: string | null = null;
   
   if (session.method === 'efectivo') {
@@ -610,12 +608,23 @@ async function saveTransaction(chatId: number, session: TelegramSession): Promis
   }
 
   if (!accountId) {
-    // Fallback: get first account
     const accounts = await getAllAccounts(userId);
     if (accounts.length > 0) {
       accountId = accounts[0].id;
     }
   }
+
+  return accountId;
+}
+
+async function saveTransaction(chatId: number, session: TelegramSession): Promise<void> {
+  const userId = await getUserIdByTelegramId(chatId);
+  if (!userId) {
+    await sendTelegramMessage(chatId, "Error: Usuario no encontrado.");
+    return;
+  }
+
+  const accountId = await resolveAccountId(userId, session);
 
   if (!accountId) {
     await sendTelegramMessage(chatId, "Error: No hay cuentas disponibles.");
@@ -632,7 +641,7 @@ async function saveTransaction(chatId: number, session: TelegramSession): Promis
     method: (session.method || 'efectivo') as 'efectivo' | 'debito' | 'credito' | 'qr' | 'transferencia' | 'descubierto',
     date: new Date().toISOString().split('T')[0],
     category_id: session.category_id || null,
-    is_installment: session.method === 'credito' && session.installments ? true : false,
+    is_installment: Boolean(session.method === 'credito' && session.installments),
     current_installment: session.method === 'credito' && session.installments ? 1 : null,
     total_installments: session.method === 'credito' && session.installments ? session.installments : null,
   };

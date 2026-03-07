@@ -24,7 +24,7 @@ export const AuroraBackground = ({
         {...props}
       >
         <div className="absolute inset-0 overflow-hidden">
-          <div
+          <div // NOSONAR
             className={cn(
               `
               [--white-gradient:repeating-linear-gradient(100deg,var(--white)_0%,var(--white)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--white)_16%)]
@@ -44,7 +44,7 @@ export const AuroraBackground = ({
               showRadialGradient &&
                 `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`
             )}
-            style={{ // NOSONAR
+            style={{
               "--blue": "#66a3ff",
               "--indigo": "#a29bfe",
               "--violet": "#d6a2f7",

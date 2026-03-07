@@ -99,8 +99,8 @@ interface AlertToggleProps {
   defaultChecked: boolean;
 }
 
-function AlertToggle({ icon: Icon, title, description, defaultChecked }: AlertToggleProps) {
-  const toggleId = `toggle-${title.toLowerCase().replace(/\s/g, '-')}`;
+function AlertToggle({ icon: Icon, title, description, defaultChecked }: Readonly<AlertToggleProps>) {
+  const toggleId = `toggle-${title.toLowerCase().replaceAll(/\s/g, '-')}`;
   
   return (
     <div className="flex items-center justify-between py-2">

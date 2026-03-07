@@ -2,15 +2,12 @@ import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/
 import { Button } from "@/components/ui/Button";
 import { 
   Building2, 
-  CreditCard,
-  Calendar,
-  Plus,
-  Clock
+  Plus
 } from "lucide-react";
 import { getAccounts } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { formatCurrency, getAccountTypeConfig } from "@/lib/constants";
-import type { Account } from "@/types/database";
+
 
 /**
  * Banco Page - Server Component

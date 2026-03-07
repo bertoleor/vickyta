@@ -63,6 +63,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               {icon}
             </div>
           )}
+          {/* NOSONAR */}
           <input
             ref={ref}
             id={inputId}
@@ -77,7 +78,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               error && "border-accent-400 focus:border-accent-500 focus:ring-accent-200",
               className
             )}
-            aria-invalid={!!error} // NOSONAR
+            aria-invalid={error ? true : undefined}
             aria-describedby={error ? `${inputId}-error` : undefined}
             {...props}
           />

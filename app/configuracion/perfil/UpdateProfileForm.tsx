@@ -7,8 +7,8 @@ import { Check, Loader2 } from "lucide-react";
 import { updateProfile } from "./actions";
 
 interface UpdateProfileFormProps {
-  displayName: string;
-  email: string;
+  readonly displayName: string;
+  readonly email: string;
 }
 
 /**

@@ -100,13 +100,6 @@ export function getCategoryIcon(slug: string | null): LucideIcon {
 // ACCOUNT TYPE CONFIGURATION
 // ============================================
 
-import {
-  Building2 as BankIcon,
-  Smartphone as WalletIcon,
-  Banknote as CashIcon,
-  CreditCard as CardIcon,
-  PiggyBank as DebtIcon,
-} from 'lucide-react';
 
 /**
  * Account type display configuration
