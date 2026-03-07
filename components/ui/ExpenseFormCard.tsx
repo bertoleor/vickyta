@@ -10,7 +10,6 @@ import {
   CreditCard,
   Banknote,
   ArrowRightLeft,
-  Wallet,
   TrendingDown,
   TrendingUp
 } from "lucide-react";
@@ -22,7 +21,7 @@ import { formatCurrency, TRAFFIC_LIGHT_CONFIG } from "@/lib/constants";
 import type { Category, Account, PaymentMethod, TransactionType, TrafficLight } from "@/types/database";
 
 interface ExpenseFormCardProps {
-  onSuccess?: () => void;
+  readonly onSuccess?: () => void;
 }
 
 type Step = 'amount' | 'category' | 'subcategory' | 'details';
@@ -103,25 +102,28 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
     : [];
 
   // Smart category suggestion based on description
+  const findSuggestedCategory = (desc: string) => {
+    const lowercaseDesc = desc.toLowerCase();
+    for (const [catSlug, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+      if (keywords.some(kw => lowercaseDesc.includes(kw))) {
+        return categories.find(c => 
+          c.name.toLowerCase().includes(catSlug) ||
+          catSlug.includes(c.name.toLowerCase().replace(' ', ''))
+        );
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (description && !selectedSubCategory) {
-      const desc = description.toLowerCase();
-      for (const [catSlug, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-        if (keywords.some(kw => desc.includes(kw))) {
-          // Find category by name match
-          const found = categories.find(c => 
-            c.name.toLowerCase().includes(catSlug) ||
-            catSlug.includes(c.name.toLowerCase().replace(' ', ''))
-          );
-          if (found) {
-            if (found.parent_id) {
-              setSelectedMacroCategory(found.parent_id);
-              setSelectedSubCategory(found.id);
-            } else {
-              setSelectedMacroCategory(found.id);
-            }
-          }
-          break;
+      const found = findSuggestedCategory(description);
+      if (found) {
+        if (found.parent_id) {
+          setSelectedMacroCategory(found.parent_id);
+          setSelectedSubCategory(found.id);
+        } else {
+          setSelectedMacroCategory(found.id);
         }
       }
     }
@@ -176,7 +178,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
   const canProceed = () => {
     switch (step) {
       case 'amount':
-        return parseFloat(amount) > 0;
+        return Number.parseFloat(amount) > 0;
       case 'category':
         return selectedMacroCategory !== null;
       case 'subcategory':
@@ -190,7 +192,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
   // Submit
   const handleSubmit = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
+    if (!amount || Number.parseFloat(amount) <= 0) {
       setError("Ingresa un monto valido");
       return;
     }
@@ -204,7 +206,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         account_id: selectedAccount || '',
         destination_account_id: transactionType === 'transferencia_interna' ? destinationAccount : null,
         category_id: selectedSubCategory || selectedMacroCategory || null,
-        amount: parseFloat(amount),
+        amount: Number.parseFloat(amount),
         date,
         description,
         type: transactionType,
@@ -304,13 +306,15 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
       {/* Amount */}
       <div>
-        <label className="text-sm text-text-secondary mb-1 block">Monto</label>
+        <label htmlFor="amount-input" className="text-sm text-text-secondary mb-1 block">Monto</label>
         <div className="relative">
           <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
           <input
+            id="amount-input"
             type="number"
             inputMode="decimal"
             placeholder="0.00"
+            title="Monto del movimiento"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="w-full h-14 pl-10 pr-4 text-2xl font-bold text-center bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
@@ -321,11 +325,14 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
       {/* Date */}
       <div>
-        <label className="text-sm text-text-secondary mb-1 block">Fecha</label>
+        <label htmlFor="date-input" className="text-sm text-text-secondary mb-1 block">Fecha</label>
         <div className="relative">
           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
           <input
+            id="date-input"
             type="date"
+            title="Fecha del movimiento"
+            placeholder="DD/MM/AAAA"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="w-full h-12 pl-10 pr-4 bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
@@ -335,9 +342,11 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
       {/* Description */}
       <div>
-        <label className="text-sm text-text-secondary mb-1 block">Descripcion (opcional)</label>
+        <label htmlFor="description-input" className="text-sm text-text-secondary mb-1 block">Descripcion (opcional)</label>
         <input
+          id="description-input"
           type="text"
+          title="Descripción del movimiento"
           placeholder="Que compraste?"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -449,8 +458,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       {/* Account Selection (if not efectivo) */}
       {paymentMethod !== 'efectivo' && transactionType !== 'transferencia_interna' && (
         <div>
-          <label className="text-sm text-text-secondary mb-2 block">Cuenta</label>
+          <label htmlFor="account-select" className="text-sm text-text-secondary mb-2 block">Cuenta</label>
           <select
+            id="account-select"
+            title="Seleccionar cuenta de origen"
             value={selectedAccount || ''}
             onChange={(e) => setSelectedAccount(e.target.value)}
             className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
@@ -470,8 +481,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       {transactionType === 'transferencia_interna' && (
         <div className="space-y-3">
           <div>
-            <label className="text-sm text-text-secondary mb-2 block">Desde</label>
+            <label htmlFor="origin-account" className="text-sm text-text-secondary mb-2 block">Desde</label>
             <select
+              id="origin-account"
+              title="Seleccionar cuenta de origen"
               value={selectedAccount || ''}
               onChange={(e) => setSelectedAccount(e.target.value)}
               className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200"
@@ -484,8 +497,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             </select>
           </div>
           <div>
-            <label className="text-sm text-text-secondary mb-2 block">Hacia</label>
+            <label htmlFor="destination-account" className="text-sm text-text-secondary mb-2 block">Hacia</label>
             <select
+              id="destination-account"
+              title="Seleccionar cuenta de destino"
               value={destinationAccount || ''}
               onChange={(e) => setDestinationAccount(e.target.value)}
               className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200"
@@ -503,9 +518,11 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       {/* Installments (only for credito) */}
       {paymentMethod === 'credito' && (
         <div className="p-3 rounded-xl bg-white/50">
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer" htmlFor="installment-checkbox">
             <input
+              id="installment-checkbox"
               type="checkbox"
+              title="Marcar si es un pago en cuotas"
               checked={isInstallment}
               onChange={(e) => setIsInstallment(e.target.checked)}
               className="w-4 h-4 rounded border-primary-300"
@@ -514,10 +531,12 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
           </label>
           {isInstallment && (
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-sm text-text-secondary">Cuota 1 de</span>
+              <label htmlFor="installments-select" className="text-sm text-text-secondary">Cuota 1 de</label>
               <select
+                id="installments-select"
+                title="Cantidad de cuotas"
                 value={totalInstallments}
-                onChange={(e) => setTotalInstallments(parseInt(e.target.value))}
+                onChange={(e) => setTotalInstallments(Number.parseInt(e.target.value, 10))}
                 className="h-8 px-2 bg-white rounded-lg border border-primary-200"
               >
                 {[2, 3, 6, 9, 12, 18, 24].map(n => (
@@ -553,12 +572,17 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
     </div>
   );
 
+  const getCardTitle = () => {
+    if (transactionType === 'transferencia_interna') return 'Transferir';
+    if (transactionType === 'ingreso') return 'Nuevo Ingreso';
+    return 'Nuevo Gasto';
+  };
+
   return (
     <GlassCard variant="lavender" className="w-full max-w-md mx-auto">
       <GlassCardHeader>
         <GlassCardTitle className="text-center text-lg">
-          {transactionType === 'transferencia_interna' ? 'Transferir' : 
-           transactionType === 'ingreso' ? 'Nuevo Ingreso' : 'Nuevo Gasto'}
+          {getCardTitle()}
         </GlassCardTitle>
       </GlassCardHeader>
       <GlassCardContent>
@@ -575,23 +599,14 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
         {/* Navigation */}
         <div className="flex gap-2 mt-6">
-          {step !== 'amount' && (
+          {step === 'amount' ? null : (
             <Button variant="ghost" onClick={goBack} className="flex-1">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Atras
             </Button>
           )}
           
-          {step !== 'details' ? (
-            <Button 
-              onClick={goNext} 
-              disabled={!canProceed()}
-              className="flex-1"
-            >
-              Siguiente
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          ) : (
+          {step === 'details' ? (
             <Button 
               onClick={handleSubmit}
               isLoading={isLoading}
@@ -600,6 +615,15 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             >
               <Check className="h-4 w-4 mr-1" />
               Guardar
+            </Button>
+          ) : (
+            <Button 
+              onClick={goNext} 
+              disabled={!canProceed()}
+              className="flex-1"
+            >
+              Siguiente
+              <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           )}
         </div>
