@@ -3,6 +3,7 @@
 Una aplicación web progresiva para la gestión de finanzas personales.
 
 ## Tecnologías
+
 - **Core**: Next.js, React
 - **Estilos**: Tailwind CSS
 - **Backend**: Supabase
