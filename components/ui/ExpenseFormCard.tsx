@@ -416,7 +416,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       {/* Payment Method */}
       {transactionType !== 'transferencia_interna' && (
         <div>
-          <label className="text-sm text-text-secondary mb-2 block">Metodo de pago</label>
+          <p className="text-sm text-text-secondary mb-2 block">Metodo de pago</p>
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setPaymentMethod('efectivo')}
@@ -551,7 +551,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       {/* Traffic Light Tag */}
       {transactionType === 'gasto' && (
         <div>
-          <label className="text-sm text-text-secondary mb-2 block">Etiqueta (opcional)</label>
+          <p className="text-sm text-text-secondary mb-2 block">Etiqueta (opcional)</p>
           <div className="flex gap-2">
             {Object.entries(TRAFFIC_LIGHT_CONFIG).map(([key, config]) => (
               <button

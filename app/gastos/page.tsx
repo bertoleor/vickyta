@@ -8,7 +8,7 @@ import {
 import { getCategories, getTransactions } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { formatCurrency, getCategoryIcon } from "@/lib/constants";
-import type { Category, Transaction } from "@/types/database";
+import type { Transaction } from "@/types/database";
 
 /**
  * Manejo de Gastos Page - Server Component

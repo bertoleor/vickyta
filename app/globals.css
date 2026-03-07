@@ -1,12 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* 
  * Primary Font: Garet (local) - Used for all body text and UI elements
  * Secondary Fonts (Google): Dancing Script (handwritten), Poppins (display), Quicksand (delicate)
  */
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 /* Base styles */
 body {
