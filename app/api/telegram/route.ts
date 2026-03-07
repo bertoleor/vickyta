@@ -325,7 +325,7 @@ function parseExpenseMessage(text: string): { amount: number; description: strin
   const match = expensePattern.exec(text);
 
   if (match) {
-    const amount = Number.parseFloat(match[1].replace(/[.,](?=\d{3})/g, '').replaceAll(',', '.'));
+    const amount = Number.parseFloat(match[1].replaceAll(/[.,](?=\d{3})/g, '').replaceAll(',', '.'));
     const description = match[2].trim();
     
     return { amount, description };

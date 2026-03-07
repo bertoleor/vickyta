@@ -190,7 +190,7 @@ export default async function DashboardPage() {
                   <span className="text-text-muted">{item.percentage}%</span>
                 </div>
                 <div className="h-2 bg-white/50 rounded-full overflow-hidden">
-                  <div // NOSONAR
+                  <div 
                     className={`h-full ${item.color} rounded-full transition-all duration-500`}
                     style={{ width: `${item.percentage}%` }}
                   />
