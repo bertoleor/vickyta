@@ -1,13 +1,9 @@
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
-import { Button } from "@/components/ui/Button";
-import { 
-  Wallet, 
-  Plus,
-  TrendingUp
-} from "lucide-react";
+import { Wallet, TrendingUp } from "lucide-react";
 import { getTransactions } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { formatCurrency } from "@/lib/constants";
+import { IncomeForm } from "@/components/ui/IncomeForm";
 
 /**
  * Ingresos Page - Server Component
@@ -85,32 +81,18 @@ export default async function IngresosPage() {
         </GlassCardContent>
       </GlassCard>
 
-      {/* Add Income */}
+      {/* Add Income - Connected to Server */}
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2 text-base">
             <div className="p-1.5 rounded-lg bg-background-secondary">
-              <Plus className="h-4 w-4 text-primary" />
+              <TrendingUp className="h-4 w-4 text-primary" />
             </div>
             Agregar Ingreso
           </GlassCardTitle>
         </GlassCardHeader>
         <GlassCardContent>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Descripción (ej: Colegio San Martín)"
-              className="flex-1 h-10 px-3 text-sm bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-            <input
-              type="text"
-              placeholder="$0"
-              className="w-28 h-10 px-3 text-sm bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20 text-right"
-            />
-            <Button size="sm" className="h-10 px-4">
-              Agregar
-            </Button>
-          </div>
+          <IncomeForm />
         </GlassCardContent>
       </GlassCard>
 

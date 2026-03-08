@@ -40,6 +40,15 @@ export type TrafficLight =
   | 'evitable';
 
 /**
+ * Recurring frequency enum for recurring expenses
+ */
+export type RecurringFrequency =
+  | 'diario'
+  | 'semanal'
+  | 'quincenal'
+  | 'mensual';
+
+/**
  * Account type enum
  * Matches PostgreSQL check constraint on accounts.type
  */
@@ -101,6 +110,10 @@ export interface Transaction {
   is_installment: boolean;
   current_installment: number | null;
   total_installments: number | null;
+  
+  // Recurring expense fields
+  is_recurring: boolean;
+  recurring_frequency: RecurringFrequency | null;
   
   // Traffic light tag
   tag: TrafficLight | null;
@@ -168,6 +181,8 @@ export interface TransactionInsert {
   is_installment?: boolean;
   current_installment?: number | null;
   total_installments?: number | null;
+  is_recurring?: boolean;
+  recurring_frequency?: RecurringFrequency | null;
   tag?: TrafficLight | null;
 }
 
@@ -209,6 +224,8 @@ export interface TransactionUpdate {
   is_installment?: boolean;
   current_installment?: number | null;
   total_installments?: number | null;
+  is_recurring?: boolean;
+  recurring_frequency?: RecurringFrequency | null;
   tag?: TrafficLight | null;
 }
 

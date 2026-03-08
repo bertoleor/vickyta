@@ -18,7 +18,7 @@ import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/
 import { addTransaction } from "@/lib/actions/transactions";
 import { getCategories, getAccounts } from "@/lib/actions";
 import { formatCurrency, TRAFFIC_LIGHT_CONFIG } from "@/lib/constants";
-import type { Category, Account, PaymentMethod, TransactionType, TrafficLight } from "@/types/database";
+import type { Category, Account, PaymentMethod, TransactionType, TrafficLight, RecurringFrequency } from "@/types/database";
 
 interface ExpenseFormCardProps {
   readonly onSuccess?: () => void;
@@ -71,6 +71,8 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
   const [tag, setTag] = useState<TrafficLight | null>(null);
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(1);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>('mensual');
   
   // Transaction type
   const [transactionType, setTransactionType] = useState<TransactionType>('gasto');
@@ -202,7 +204,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
     try {
       const result = await addTransaction({
-        user_id: '',
+        user_id: '', // Server will get from session
         account_id: selectedAccount || '',
         destination_account_id: transactionType === 'transferencia_interna' ? destinationAccount : null,
         category_id: selectedSubCategory || selectedMacroCategory || null,
@@ -214,6 +216,8 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         is_installment: isInstallment && paymentMethod === 'credito',
         current_installment: isInstallment ? 1 : null,
         total_installments: isInstallment ? totalInstallments : null,
+        is_recurring: isRecurring,
+        recurring_frequency: isRecurring ? recurringFrequency : null,
         tag,
       });
 
@@ -227,6 +231,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         setSelectedSubCategory(null);
         setTag(null);
         setIsInstallment(false);
+        setIsRecurring(false);
         setStep('amount');
         onSuccess?.();
       }
@@ -542,6 +547,40 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
                 {[2, 3, 6, 9, 12, 18, 24].map(n => (
                   <option key={n} value={n}>{n}</option>
                 ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Recurring Expense - for services, subscriptions, etc. */}
+      {transactionType === 'gasto' && paymentMethod !== 'credito' && (
+        <div className="p-3 rounded-xl bg-white/50">
+          <label className="flex items-center gap-2 cursor-pointer" htmlFor="recurring-checkbox">
+            <input
+              id="recurring-checkbox"
+              type="checkbox"
+              title="Marcar si es un gasto recurrente (servicio, suscripción)"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="w-4 h-4 rounded border-primary-300"
+            />
+            <span className="text-sm text-text-primary">Gasto recurrente (servicio, suscripción)</span>
+          </label>
+          {isRecurring && (
+            <div className="mt-2 flex items-center gap-2">
+              <label htmlFor="frequency-select" className="text-sm text-text-secondary">Frecuencia:</label>
+              <select
+                id="frequency-select"
+                title="Frecuencia del gasto recurrente"
+                value={recurringFrequency}
+                onChange={(e) => setRecurringFrequency(e.target.value as RecurringFrequency)}
+                className="h-8 px-2 bg-white rounded-lg border border-primary-200"
+              >
+                <option value="diario">Diario</option>
+                <option value="semanal">Semanal</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="mensual">Mensual</option>
               </select>
             </div>
           )}

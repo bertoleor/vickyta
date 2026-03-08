@@ -10,7 +10,7 @@ import {
   ChevronRight,
   MessageCircle
 } from "lucide-react";
-import { getAccountSummary } from "@/lib/actions";
+import { getAccountSummary, ensureDefaultCategories } from "@/lib/actions";
 import { getRecentTransactions, getTransactionSummary } from "@/lib/actions/transactions";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { formatCurrency } from "@/lib/constants";
@@ -23,6 +23,9 @@ export default async function DashboardPage() {
   // Get current user
   const user = await getCurrentUser();
   const displayName = user?.displayName || "Vicky";
+
+  // Ensure default categories exist (including Ernesto)
+  await ensureDefaultCategories();
 
   // Get account summary
   const accountsResult = await getAccountSummary(user?.id || "");

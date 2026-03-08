@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '@/lib/supabase/client';
+import { getUser } from '@/lib/supabase/server';
 import { updateAccountBalance } from './accounts';
 import type {
   Transaction,
@@ -15,6 +16,23 @@ import type {
   TransactionType,
   ApiResponse,
 } from '@/types/database';
+
+/**
+ * Get the current user ID from the session
+ * Returns the user ID or null if not authenticated
+ */
+async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return null;
+    }
+    return user.id;
+  } catch (err) {
+    console.error('Unexpected error getting user:', err);
+    return null;
+  }
+}
 
 /**
  * Get all transactions for a user
@@ -209,6 +227,7 @@ export async function getTransactionById(
 /**
  * Add a new transaction
  * IMPORTANT: Handles internal transfers by updating both accounts
+ * If user_id is not provided in transactionData, it will be obtained from the session
  * @param transactionData - The transaction data to insert
  * @returns Created transaction or error
  */
@@ -217,12 +236,19 @@ export async function addTransaction(
 ): Promise<ApiResponse<Transaction>> {
   try {
     // Validate required fields
-    if (!transactionData.user_id) {
-      return {
-        data: null,
-        error: 'Usuario no especificado',
-        success: false,
-      };
+    let userId = transactionData.user_id;
+    
+    // If user_id is not provided, try to get from session
+    if (!userId) {
+      const resolvedUserId = await getCurrentUserId();
+      if (!resolvedUserId) {
+        return {
+          data: null,
+          error: 'Usuario no especificado',
+          success: false,
+        };
+      }
+      userId = resolvedUserId;
     }
 
     if (!transactionData.account_id) {
@@ -241,15 +267,21 @@ export async function addTransaction(
       };
     }
 
+    // Create transaction data with user_id
+    const transactionWithUser = {
+      ...transactionData,
+      user_id: userId,
+    };
+
     // Handle internal transfer
     if (transactionData.type === 'transferencia_interna') {
-      return await handleInternalTransfer(transactionData);
+      return await handleInternalTransfer(transactionWithUser);
     }
 
     // Insert the transaction
     const { data, error } = await supabase
       .from('transactions')
-      .insert(transactionData)
+      .insert(transactionWithUser)
       .select()
       .single();
 

@@ -1,20 +1,20 @@
-import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
+import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard"; 
 import { 
   User,
   Mail,
-  Camera,
   ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { UpdateProfileForm } from "./UpdateProfileForm";
+import { AvatarSection } from "./AvatarSection";
 
 /**
  * Profile Settings Page - Server Component
  * 
  * Allows user to update:
  * - Display name
- * - Avatar (future: image upload)
+ * - Avatar (image upload to Supabase Storage)
  * - Email display (read-only, managed by Supabase Auth)
  */
 export default async function PerfilPage() {
@@ -22,6 +22,12 @@ export default async function PerfilPage() {
   const displayName = user?.displayName || "Usuario";
   const email = user?.email || "";
   const initial = displayName.charAt(0).toUpperCase();
+
+  // Get avatar URL from user metadata if available
+  // Note: We need to get it from the actual user session, not the cached displayName
+  const supabase = await import('@/lib/supabase/server').then(m => m.createClient());
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  const avatarUrl = authUser?.user_metadata?.avatar_url as string | undefined;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -44,22 +50,7 @@ export default async function PerfilPage() {
       </div>
 
       {/* Avatar Section */}
-      <GlassCard variant="elevated" className="text-center">
-        <div className="relative inline-block">
-          <div className="h-24 w-24 rounded-full bg-primary flex items-center justify-center shadow-soft mx-auto">
-            <span className="text-4xl font-bold text-white">{initial}</span>
-          </div>
-          <button 
-            className="absolute bottom-0 right-0 p-2 rounded-full bg-white shadow-soft hover:bg-neutral-50 transition-colors"
-            aria-label="Cambiar avatar"
-          >
-            <Camera className="h-4 w-4 text-primary" />
-          </button>
-        </div>
-        <p className="text-sm text-text-muted mt-3">
-          Toca para cambiar tu avatar
-        </p>
-      </GlassCard>
+      <AvatarSection avatarUrl={avatarUrl} displayName={displayName} initial={initial} />
 
       {/* Profile Form */}
       <GlassCard variant="default">

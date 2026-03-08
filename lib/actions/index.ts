@@ -25,6 +25,7 @@ export {
   createCategory,
   updateCategory,
   deleteCategory,
+  ensureDefaultCategories,
 } from './categories';
 
 // Transaction actions

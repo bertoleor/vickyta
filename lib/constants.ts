@@ -73,6 +73,7 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   'users': Users,
   'sofa': Sofa,
   'scissors': Scissors,
+  'user': Users,
   
   // Child categories - Deudas & Bancos
   'receipt': Receipt,

@@ -447,3 +447,68 @@ export async function deleteCategory(
     };
   }
 }
+
+/**
+ * Ensure default categories exist, including Ernesto
+ * This is called on app initialization
+ * @returns Success status
+ */
+export async function ensureDefaultCategories(): Promise<ApiResponse<null>> {
+  try {
+    // Check if Ernesto category already exists
+    const { data: existingErnesto } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('name', 'Ernesto')
+      .single();
+
+    if (existingErnesto) {
+      // Already exists, nothing to do
+      return { data: null, error: null, success: true };
+    }
+
+    // Find the parent category for Ernesto (Extras & Hormiga)
+    const { data: parentCategory } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('name', 'Extras & Hormiga')
+      .is('parent_id', null)
+      .single();
+
+    if (!parentCategory) {
+      return {
+        data: null,
+        error: 'Categoría padre no encontrada',
+        success: false,
+      };
+    }
+
+    // Create Ernesto category under Extras & Hormiga
+    const { error: insertError } = await supabase
+      .from('categories')
+      .insert({
+        name: 'Ernesto',
+        icon_slug: 'user',
+        parent_id: parentCategory.id,
+        is_system: false,
+      });
+
+    if (insertError) {
+      console.error('Error creating Ernesto category:', insertError);
+      return {
+        data: null,
+        error: insertError.message,
+        success: false,
+      };
+    }
+
+    return { data: null, error: null, success: true };
+  } catch (err) {
+    console.error('Unexpected error ensuring default categories:', err);
+    return {
+      data: null,
+      error: 'Error inesperado al crear las categorías por defecto',
+      success: false,
+    };
+  }
+}
