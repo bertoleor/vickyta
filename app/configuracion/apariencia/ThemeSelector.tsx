@@ -85,7 +85,7 @@ export function ThemeSelector() {
         {themeOptions.map((option) => (
           <div 
             key={option.value}
-            className="h-20 rounded-xl bg-primary-50 animate-pulse"
+            className="h-20 rounded-xl bg-neutral-50 animate-pulse"
           />
         ))}
       </div>
@@ -104,13 +104,13 @@ export function ThemeSelector() {
             onClick={() => handleSelectTheme(option.value)}
             className={`flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
               isSelected
-                ? "bg-primary-500 text-white shadow-md"
-                : "bg-primary-50 text-text-primary hover:bg-primary-100"
+                ? "bg-primary text-white shadow-soft"
+                : "bg-neutral-50 text-text-primary hover:bg-neutral-100"
             }`}
             aria-label={`Seleccionar tema ${option.label}`}
           >
             <Icon className={`h-6 w-6 mb-2 ${
-              isSelected ? "text-white" : "text-primary-600"
+              isSelected ? "text-white" : "text-primary"
             }`} />
             <span className="text-sm font-medium">{option.label}</span>
             <span className={`text-xs mt-0.5 ${

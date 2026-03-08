@@ -2,68 +2,30 @@ import { HTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "elevated" | "floating" | "lavender" | "cyan" | "rose";
-  blur?: "sm" | "md" | "lg" | "xl";
-  noHover?: boolean;
+  variant?: "default" | "elevated";
 }
 
 /**
- * GlassCard Component - Glassmorphism effect card
- * Aurora Pastel Color Palette
+ * GlassCard Component - iOS Style Card
  * 
  * Features:
- * - Semi-transparent background with blur
- * - Works with Aurora Background for stunning visual effect
- * - Noise texture for depth
- * 
- * Variants:
- * - default: Standard glass effect with white transparency
- * - elevated: Higher opacity with stronger shadow
- * - floating: Maximum blur and shadow for floating elements
- * - lavender: Tinted glass with Lavanda (#D9C2EA)
- * - cyan: Tinted glass with Cian Pastel (#C2E3EA) - Aurora effect
- * - rose: Tinted glass with Rosa Viejo (#EAC2D2)
+ * - Clean white background
+ * - Soft borders and subtle shadows
+ * - Consistent with iOS design principles
  */
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, variant = "default", blur = "lg", noHover = false, children, ...props }, ref) => {
+  ({ className, variant = "default", children, ...props }, ref) => {
     const variants = {
       default: [
-        "bg-white/70",
-        "border-white/40",
-        "shadow-glass",
+        "bg-white",
+        "border-border-light",
+        "shadow-soft",
       ],
       elevated: [
-        "bg-white/80",
-        "border-white/50",
-        "shadow-glass-lg",
+        "bg-white",
+        "border-border-light",
+        "shadow-soft-lg",
       ],
-      floating: [
-        "bg-white/85",
-        "border-white/60",
-        "shadow-glass-lg",
-      ],
-      lavender: [
-        "bg-primary-100/50",
-        "border-primary-200/40",
-        "shadow-aurora",
-      ],
-      cyan: [
-        "bg-secondary-100/50",
-        "border-secondary-200/40",
-        "shadow-aurora",
-      ],
-      rose: [
-        "bg-accent-100/50",
-        "border-accent-200/40",
-        "shadow-aurora",
-      ],
-    };
-
-    const blurValues = {
-      sm: "backdrop-blur-sm",
-      md: "backdrop-blur-md",
-      lg: "backdrop-blur-lg",
-      xl: "backdrop-blur-xl",
     };
 
     return (
@@ -71,19 +33,12 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         ref={ref}
         className={cn(
           "rounded-2xl border p-5 relative overflow-hidden",
-          "backdrop-blur-xl",
           "transition-all duration-300 ease-out",
-          !noHover && "hover:shadow-aurora hover:-translate-y-0.5 hover:border-primary-300/50",
           ...variants[variant],
-          blurValues[blur],
           className
         )}
         {...props}
       >
-        {/* Noise texture overlay for depth */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay glass-noise" />
-        {/* Glass reflection effect */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.15] glass-reflection" />
         {/* Content */}
         <div className="relative z-10">
           {children}

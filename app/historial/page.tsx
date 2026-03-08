@@ -78,7 +78,7 @@ export default async function HistorialPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center pt-4 pb-2">
-        <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+        <h1 className="text-2xl font-bold text-text-primary">
           Historial
         </h1>
         <p className="text-text-secondary mt-1 text-sm">
@@ -88,24 +88,24 @@ export default async function HistorialPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4">
-        <GlassCard variant="cyan" className="text-center">
+        <GlassCard variant="default" className="text-center">
           <GlassCardContent className="py-3">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <TrendingUp className="h-4 w-4 text-secondary-600" />
+              <TrendingUp className="h-4 w-4 text-primary" />
               <span className="text-xs text-text-muted">Ingresos</span>
             </div>
-            <p className="text-lg font-bold text-secondary-600">
+            <p className="text-lg font-bold text-primary">
               +{formatCurrency(totalIncome)}
             </p>
           </GlassCardContent>
         </GlassCard>
-        <GlassCard variant="rose" className="text-center">
+        <GlassCard variant="default" className="text-center">
           <GlassCardContent className="py-3">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <TrendingDown className="h-4 w-4 text-accent-600" />
+              <TrendingDown className="h-4 w-4 text-danger" />
               <span className="text-xs text-text-muted">Gastos</span>
             </div>
-            <p className="text-lg font-bold text-accent-600">
+            <p className="text-lg font-bold text-danger">
               -{formatCurrency(totalExpense)}
             </p>
           </GlassCardContent>
@@ -119,7 +119,7 @@ export default async function HistorialPage() {
             {formatDate(date)}
           </h3>
           <GlassCard variant="default">
-            <GlassCardContent className="divide-y divide-primary-100">
+            <GlassCardContent className="divide-y divide-border-light">
               {groupedHistory[date].map((item) => (
                 <div 
                   key={item.id}

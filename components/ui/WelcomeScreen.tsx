@@ -1,74 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 interface WelcomeScreenProps {
   readonly message: string;
   readonly onComplete: () => void;
-  readonly typingSpeed?: number;
   readonly delay?: number;
 }
 
 /**
- * WelcomeScreen Component
- * Aurora Pastel Color Palette
+ * WelcomeScreen Component - iOS Style
  * 
- * Displays a welcome message with a typewriter effect
- * Uses Garet font for elegant, modern style
- * Aurora background is now global via layout.tsx
+ * Displays a welcome message with a clean, centered layout.
+ * Removes AI typewriter tropes for a more standard premium feel.
  */
 export function WelcomeScreen({
   message,
   onComplete,
-  typingSpeed = 80,
   delay = 500,
 }: WelcomeScreenProps) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isStarted, setIsStarted] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
-
-  // Start typing after delay
+  // Navigation auto-complete
   useEffect(() => {
-    const startTimeout = setTimeout(() => {
-      setIsStarted(true);
-    }, delay);
+    const timeout = setTimeout(() => {
+      onComplete();
+    }, delay + 3000); // Wait 3 seconds after delay
 
-    return () => clearTimeout(startTimeout);
-  }, [delay]);
-
-  // Typewriter effect
-  useEffect(() => {
-    if (!isStarted) return;
-
-    if (currentIndex < message.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedText((prev) => prev + message[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, typingSpeed);
-
-      return () => clearTimeout(timeout);
-    } else if (currentIndex === message.length && !isComplete) {
-      setIsComplete(true);
-      // Wait 10 seconds before navigating to dashboard
-      const completeTimeout = setTimeout(() => {
-        onComplete();
-      }, 10000);
-
-      return () => clearTimeout(completeTimeout);
-    }
-  }, [currentIndex, isStarted, message, typingSpeed, onComplete, isComplete]);
+    return () => clearTimeout(timeout);
+  }, [delay, onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Welcome message */}
-      <div className="relative text-center animate-fade-in z-10">
-        <h1 className="font-sans text-5xl md:text-6xl lg:text-7xl font-semibold text-text-primary tracking-wide drop-shadow-sm">
-          {displayedText}
-          {!isComplete && (
-            <span className="inline-block w-0.5 h-8 md:h-10 lg:h-12 bg-primary-600 ml-1 animate-blink" />
-          )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+      <div className="relative text-center animate-fade-in px-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-text-primary tracking-tight">
+          {message}
         </h1>
+        <p className="mt-4 text-text-secondary animate-fade-in [animation-delay:400ms]">
+          Tu asistente financiero personal
+        </p>
       </div>
     </div>
   );

@@ -2,28 +2,18 @@ import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "accent" | "danger" | "ghost" | "cyan";
+  variant?: "primary" | "secondary" | "danger" | "ghost" | "link";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
 
 /**
- * Button Component - iOS-style pill buttons
- * Aurora Pastel Color Palette
+ * Button Component - iOS Style
  * 
  * Features:
- * - Fully rounded (pill) borders
- * - Soft gradient backgrounds for primary actions
- * - Smooth press animations
- * - Loading states with spinner
- * 
- * Variants:
- * - primary: Gradient Lavanda background
- * - secondary: Outlined with Lavanda border
- * - accent: Rosa Viejo for warm accents
- * - danger: Soft rose for destructive actions
- * - ghost: Text only with hover background
- * - cyan: Cian Pastel for secondary actions
+ * - Rounded-xl corners (iOS default style for buttons)
+ * - Solid System Blue for primary actions
+ * - Subtle active state (scale down)
  */
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -39,60 +29,44 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 press-effect";
+      "inline-flex items-center justify-center font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]";
 
     const variants = {
       primary: [
-        "rounded-full",
-        "bg-gradient-to-r from-primary-400 to-primary-500",
+        "rounded-xl",
+        "bg-primary",
         "text-white",
-        "hover:from-primary-500 hover:to-primary-600",
-        "active:from-primary-600 active:to-primary-700",
+        "hover:bg-primary-600",
         "shadow-soft",
       ].join(" "),
       secondary: [
-        "rounded-full",
-        "bg-transparent",
-        "border-2 border-primary-400",
-        "text-primary-700",
-        "hover:bg-primary-50",
-        "active:bg-primary-100",
-      ].join(" "),
-      accent: [
-        "rounded-full",
-        "bg-gradient-to-r from-accent-400 to-accent-500",
-        "text-white",
-        "hover:from-accent-500 hover:to-accent-600",
-        "active:from-accent-600 active:to-accent-700",
-        "shadow-soft",
+        "rounded-xl",
+        "bg-background-secondary",
+        "text-primary",
+        "hover:bg-background-tertiary",
       ].join(" "),
       danger: [
-        "rounded-full",
+        "rounded-xl",
         "bg-danger",
-        "text-text-primary",
-        "hover:bg-accent-400",
-        "active:bg-accent-500",
-        "shadow-soft",
+        "text-white",
+        "hover:opacity-90",
       ].join(" "),
       ghost: [
-        "rounded-full",
+        "rounded-xl",
         "bg-transparent",
         "text-text-secondary",
-        "hover:bg-primary-100",
+        "hover:bg-background-secondary",
         "hover:text-text-primary",
       ].join(" "),
-      cyan: [
-        "rounded-full",
-        "bg-gradient-to-r from-secondary-400 to-secondary-500",
-        "text-white",
-        "hover:from-secondary-500 hover:to-secondary-600",
-        "active:from-secondary-600 active:to-secondary-700",
-        "shadow-soft",
+      link: [
+        "bg-transparent",
+        "text-primary",
+        "p-0 h-auto font-bold hover:opacity-80",
       ].join(" "),
     };
 
     const sizes = {
-      sm: "h-9 px-4 text-sm",
+      sm: "h-9 px-4 text-xs",
       md: "h-11 px-6 text-sm",
       lg: "h-13 px-8 text-base",
     };

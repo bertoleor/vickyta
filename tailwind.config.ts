@@ -10,137 +10,82 @@ const config: Config = {
     extend: {
       colors: {
         // ===========================================
-        // AURORA PASTEL COLOR PALETTE
+        // iOS SYSTEM COLORS (Inspired)
         // ===========================================
         
-        // Principal - Lavanda (#D9C2EA)
-        // Usar para: acentos principales, estados activos/hover, bordes de tarjetas seleccionadas,
-        // iconos destacados en navegación, elementos interactivos primarios
+        // Primary Blue (iOS SystemBlue)
         primary: {
-          DEFAULT: "#D9C2EA",
-          50: "#FBF9FD",
-          100: "#F7F3FB",
-          200: "#EFE7F6",
-          300: "#E5D8F1",
-          400: "#D9C2EA",     // Base
-          500: "#C9ACE0",     // Hover
-          600: "#B896D6",     // Active
-          700: "#9A72C4",     // Darker
-          800: "#7B4EA8",     // Deep
-          900: "#5E3A8C",     // Darkest
+          DEFAULT: "#007AFF",
+          50: "#EBF5FF",
+          100: "#D1E9FF",
+          200: "#A3D3FF",
+          300: "#75BDFF",
+          400: "#47A7FF",
+          500: "#007AFF",     // Base
+          600: "#0062CC",     // Hover
+          700: "#004B99",     // Active
+          800: "#003366",
+          900: "#001B33",
         },
 
-        // Secundario - Cian Pastel (#C2E3EA)
-        // Usar para: frescura y profundidad aurora boreal en glassmorphism,
-        // badges de categorías secundarias, acentos en gráficos
+        // Secondary / System Indigo
         secondary: {
-          DEFAULT: "#C2E3EA",
-          50: "#F7FCFD",
-          100: "#EFF9FB",
-          200: "#DFF4F7",
-          300: "#C2E3EA",     // Base
-          400: "#A5D5DE",     // Hover
-          500: "#88C7D2",     // Active
-          600: "#6BB9C6",     // Darker
-          700: "#4A9FB0",     // Deep
-          800: "#3A859A",     // Deeper
-          900: "#2A6B84",     // Darkest
+          DEFAULT: "#5856D6",
+          500: "#5856D6",
         },
 
-        // Acento - Rosa Viejo (#EAC2D2)
-        // Usar para: calidez sin romper estética pastel, alertas suaves,
-        // notificaciones, indicadores de gastos importantes, hover secundario
-        accent: {
-          DEFAULT: "#EAC2D2",
-          50: "#FDF9FB",
-          100: "#FBF3F6",
-          200: "#F7E7ED",
-          300: "#F2D8E2",
-          400: "#EAC2D2",     // Base
-          500: "#E0AAC0",     // Hover
-          600: "#D692AE",     // Active
-          700: "#C67294",     // Darker
-          800: "#B2527A",     // Deep
-          900: "#9E3260",     // Darkest
-        },
-
-        // Fondo UI - Blanco Hueso (#F9F7FD)
-        // Usar para: fondo principal de la aplicación, modales, áreas de contenido
+        // Backgrounds
         background: {
-          DEFAULT: "#F9F7FD",
-          secondary: "#FFFFFF",
-          tertiary: "#F5F2FA",
+          DEFAULT: "#FFFFFF",
+          secondary: "#F2F2F7", // iOS SystemGroupedBackground
+          tertiary: "#E5E5EA",
         },
 
-        // Texto Bold - Ciruela Oscuro (#4A3B5A)
-        // Usar para: texto principal, títulos, labels de formularios, alta legibilidad
+        // Neutral Grays
         text: {
-          primary: "#4A3B5A",
-          secondary: "#6B5B7A",
-          tertiary: "#9B8BA8",
-          muted: "#B8A8C4",
+          primary: "#000000",
+          secondary: "#3C3C43", // iOS Label (with opacity normally, but #3C3C43 is a solid equivalent)
+          tertiary: "#8E8E93",
+          muted: "#AEAEB2",
         },
 
-        // Border colors
+        // Surface / Borders
         border: {
-          DEFAULT: "#E5D8F1",
-          dark: "#D9C2EA",
-          light: "#F7F3FB",
+          DEFAULT: "#C6C6C8",
+          light: "#E5E5EA",
         },
 
-        // Status colors - Soft pastel versions
-        success: "#B8D8C0",
-        warning: "#E8D4A8",
-        danger: "#E8B8B8",
-        info: "#B8C8E8",
-
-        // Glass effect colors - Aurora pastel
-        glass: {
-          light: "rgba(255, 255, 255, 0.80)",
-          lavender: "rgba(217, 194, 234, 0.20)",
-          cyan: "rgba(194, 227, 234, 0.20)",
-          rose: "rgba(234, 194, 210, 0.20)",
-          border: "rgba(217, 194, 234, 0.35)",
-        },
+        // Status colors
+        success: "#34C759", // iOS SystemGreen
+        warning: "#FF9500", // iOS SystemOrange
+        danger: "#FF3B30",  // iOS SystemRed
+        info: "#5AC8FA",    // iOS SystemTeal
       },
       fontFamily: {
-        sans: ["var(--font-garet)", "Inter", "system-ui", "sans-serif"],
-        script: ["Dancing Script", "Noteworthy", "cursive"],
-        display: ["Poppins", "var(--font-garet)", "system-ui", "sans-serif"],
-        delicate: ["Quicksand", "var(--font-garet)", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       borderRadius: {
-        "4xl": "2rem",
+        "xl": "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
       },
       boxShadow: {
-        glass: "0 8px 32px rgba(74, 59, 90, 0.08)",
-        "glass-lg": "0 12px 48px rgba(74, 59, 90, 0.12)",
-        soft: "0 2px 16px rgba(74, 59, 90, 0.04)",
-        "soft-lg": "0 4px 24px rgba(74, 59, 90, 0.06)",
-        aurora: "0 8px 32px rgba(217, 194, 234, 0.15)",
-      },
-      backdropBlur: {
-        xs: "2px",
+        soft: "0 2px 8px rgba(0, 0, 0, 0.04)",
+        "soft-lg": "0 10px 25px rgba(0, 0, 0, 0.08)",
       },
       animation: {
-        "fade-in": "fadeIn 0.3s ease-out",
-        "slide-in-left": "slideInLeft 0.3s ease-out",
-        "slide-out-left": "slideOutLeft 0.3s ease-out",
+        "fade-in": "fadeIn 0.4s ease-out",
+        "slide-up": "slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         blink: "blink 1s infinite",
-        "typewriter": "typewriter 0.1s steps(1)",
       },
       keyframes: {
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
-        slideInLeft: {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(0)" },
-        },
-        slideOutLeft: {
-          "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(-100%)" },
+        slideUp: {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
         },
         blink: {
           "0%, 50%": { opacity: "1" },

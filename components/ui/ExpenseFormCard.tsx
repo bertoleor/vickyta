@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -102,7 +102,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
     : [];
 
   // Smart category suggestion based on description
-  const findSuggestedCategory = (desc: string) => {
+  const findSuggestedCategory = useCallback((desc: string) => {
     const lowercaseDesc = desc.toLowerCase();
     for (const [catSlug, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
       if (keywords.some(kw => lowercaseDesc.includes(kw))) {
@@ -113,7 +113,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       }
     }
     return null;
-  };
+  }, [categories]);
 
   useEffect(() => {
     if (description && !selectedSubCategory) {
@@ -247,16 +247,16 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         {steps.map((s, i) => (
           <div key={s} className="flex items-center">
             <div 
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
                 i <= currentIndex 
-                  ? 'bg-primary-500 text-white' 
-                  : 'bg-primary-100 text-text-muted'
+                  ? 'bg-primary text-white' 
+                  : 'bg-background-secondary text-text-tertiary'
               }`}
             >
               {i < currentIndex ? <Check className="h-4 w-4" /> : i + 1}
             </div>
             {i < steps.length - 1 && (
-              <div className={`w-8 h-0.5 ${i < currentIndex ? 'bg-primary-500' : 'bg-primary-100'}`} />
+              <div className={`w-8 h-0.5 ${i < currentIndex ? 'bg-primary' : 'bg-background-secondary'}`} />
             )}
           </div>
         ))}
@@ -271,10 +271,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
       <div className="flex gap-2">
         <button
           onClick={() => setTransactionType('gasto')}
-          className={`flex-1 p-3 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 p-3 rounded-xl text-sm font-bold transition-all ${
             transactionType === 'gasto'
-              ? 'bg-primary-500 text-white'
-              : 'bg-white/50 text-text-secondary hover:bg-white/70'
+              ? 'bg-primary text-white'
+              : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
           }`}
         >
           <TrendingDown className="h-4 w-4 mx-auto mb-1" />
@@ -282,10 +282,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         </button>
         <button
           onClick={() => setTransactionType('ingreso')}
-          className={`flex-1 p-3 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 p-3 rounded-xl text-sm font-bold transition-all ${
             transactionType === 'ingreso'
-              ? 'bg-primary-500 text-white'
-              : 'bg-white/50 text-text-secondary hover:bg-white/70'
+              ? 'bg-primary text-white'
+              : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
           }`}
         >
           <TrendingUp className="h-4 w-4 mx-auto mb-1" />
@@ -293,10 +293,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         </button>
         <button
           onClick={() => setTransactionType('transferencia_interna')}
-          className={`flex-1 p-3 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 p-3 rounded-xl text-sm font-bold transition-all ${
             transactionType === 'transferencia_interna'
-              ? 'bg-primary-500 text-white'
-              : 'bg-white/50 text-text-secondary hover:bg-white/70'
+              ? 'bg-primary text-white'
+              : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
           }`}
         >
           <ArrowRightLeft className="h-4 w-4 mx-auto mb-1" />
@@ -317,7 +317,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             title="Monto del movimiento"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full h-14 pl-10 pr-4 text-2xl font-bold text-center bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="w-full h-14 pl-10 pr-4 text-2xl font-bold text-center bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
             autoFocus
           />
         </div>
@@ -335,7 +335,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             placeholder="DD/MM/AAAA"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full h-12 pl-10 pr-4 bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="w-full h-12 pl-10 pr-4 bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
@@ -350,7 +350,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
           placeholder="Que compraste?"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
+          className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
       </div>
     </div>
@@ -367,11 +367,11 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             onClick={() => setSelectedMacroCategory(cat.id)}
             className={`p-4 rounded-xl text-left transition-all ${
               selectedMacroCategory === cat.id
-                ? 'bg-primary-500 text-white'
-                : 'bg-white/50 text-text-primary hover:bg-white/70'
+                ? 'bg-primary text-white'
+                : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
             }`}
           >
-            <span className="font-medium text-sm">{cat.name}</span>
+            <span className="font-bold text-sm">{cat.name}</span>
           </button>
         ))}
       </div>
@@ -392,11 +392,11 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
               onClick={() => setSelectedSubCategory(cat.id)}
               className={`w-full p-3 rounded-xl text-left transition-all ${
                 selectedSubCategory === cat.id
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white/50 text-text-primary hover:bg-white/70'
+                  ? 'bg-primary text-white'
+                  : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
               }`}
             >
-              <span className="text-sm">{cat.name}</span>
+              <span className="text-sm font-medium">{cat.name}</span>
             </button>
           ))}
         </div>
@@ -420,10 +420,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setPaymentMethod('efectivo')}
-              className={`p-3 rounded-xl text-sm font-medium transition-all ${
+              className={`p-3 rounded-xl text-sm font-bold transition-all ${
                 paymentMethod === 'efectivo'
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white/50 text-text-secondary hover:bg-white/70'
+                  ? 'bg-primary text-white'
+                  : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
               }`}
             >
               <Banknote className="h-4 w-4 mx-auto mb-1" />
@@ -431,10 +431,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             </button>
             <button
               onClick={() => setPaymentMethod('debito')}
-              className={`p-3 rounded-xl text-sm font-medium transition-all ${
+              className={`p-3 rounded-xl text-sm font-bold transition-all ${
                 paymentMethod === 'debito'
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white/50 text-text-secondary hover:bg-white/70'
+                  ? 'bg-primary text-white'
+                  : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
               }`}
             >
               <CreditCard className="h-4 w-4 mx-auto mb-1" />
@@ -442,10 +442,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             </button>
             <button
               onClick={() => setPaymentMethod('credito')}
-              className={`p-3 rounded-xl text-sm font-medium transition-all ${
+              className={`p-3 rounded-xl text-sm font-bold transition-all ${
                 paymentMethod === 'credito'
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white/50 text-text-secondary hover:bg-white/70'
+                  ? 'bg-primary text-white'
+                  : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
               }`}
             >
               <CreditCard className="h-4 w-4 mx-auto mb-1" />
@@ -464,7 +464,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
             title="Seleccionar cuenta de origen"
             value={selectedAccount || ''}
             onChange={(e) => setSelectedAccount(e.target.value)}
-            className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             {accounts
               .filter(a => a.type === 'banco' || a.type === 'billetera_virtual')
@@ -487,7 +487,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
               title="Seleccionar cuenta de origen"
               value={selectedAccount || ''}
               onChange={(e) => setSelectedAccount(e.target.value)}
-              className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200"
+              className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light"
             >
               {accounts.map(acc => (
                 <option key={acc.id} value={acc.id}>
@@ -503,7 +503,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
               title="Seleccionar cuenta de destino"
               value={destinationAccount || ''}
               onChange={(e) => setDestinationAccount(e.target.value)}
-              className="w-full h-12 px-4 bg-white/60 rounded-xl border border-primary-200"
+              className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light"
             >
               {accounts.map(acc => (
                 <option key={acc.id} value={acc.id}>
@@ -579,7 +579,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
   };
 
   return (
-    <GlassCard variant="lavender" className="w-full max-w-md mx-auto">
+    <GlassCard className="w-full max-w-md mx-auto">
       <GlassCardHeader>
         <GlassCardTitle className="text-center text-lg">
           {getCardTitle()}

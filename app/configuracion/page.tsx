@@ -56,7 +56,7 @@ export default async function ConfiguracionPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center pt-4 pb-2">
-        <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+        <h1 className="text-2xl font-bold text-text-primary">
           Configuración
         </h1>
         <p className="text-text-secondary mt-1 text-sm">
@@ -67,11 +67,11 @@ export default async function ConfiguracionPage() {
       {/* User Card */}
       <GlassCard variant="elevated">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center shadow-glass">
-            <span className="text-2xl font-semibold text-white">{initial}</span>
+          <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center shadow-soft">
+            <span className="text-2xl font-bold text-white">{initial}</span>
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-text-primary">{displayName}</h2>
+            <h2 className="text-lg font-bold text-text-primary">{displayName}</h2>
             <p className="text-sm text-text-muted">{email}</p>
           </div>
           <ChevronRight className="h-5 w-5 text-text-muted" />
@@ -92,14 +92,14 @@ export default async function ConfiguracionPage() {
               return (
                 <button
                   key={item.label}
-                  className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-primary-50 transition-colors text-left"
+                  className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-neutral-50 transition-colors text-left"
                 >
-                  <div className="p-2 rounded-xl bg-primary-100">
-                    <Icon className="h-5 w-5 text-primary-600" />
+                  <div className="p-2 rounded-xl bg-background-secondary">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-text-primary">{item.label}</p>
-                    <p className="text-xs text-text-muted">{item.description}</p>
+                    <p className="text-sm font-bold text-text-primary">{item.label}</p>
+                    <p className="text-xs text-text-secondary font-medium">{item.description}</p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-text-muted" />
                 </button>
@@ -114,7 +114,7 @@ export default async function ConfiguracionPage() {
         <Button 
           type="submit" 
           variant="ghost" 
-          className="w-full text-accent-600 hover:bg-accent-50"
+          className="w-full text-danger hover:bg-danger/10 hover:text-danger"
         >
           <LogOut className="h-4 w-4 mr-2" />
           Cerrar Sesión
@@ -122,8 +122,8 @@ export default async function ConfiguracionPage() {
       </form>
 
       {/* Version */}
-      <p className="text-center text-xs text-text-muted">
-        Versión 1.0.0 • Aurora Pastel
+      <p className="text-center text-xs text-text-muted font-medium">
+        Versión 1.0.0
       </p>
     </div>
   );

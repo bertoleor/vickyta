@@ -116,31 +116,31 @@ export function CategorizationModal({
       {/* Modal */}
       <GlassCard variant="elevated" className="relative w-full max-w-md max-h-[80vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-primary-100">
+        <div className="flex items-center justify-between p-4 border-b border-neutral-100">
           <div className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-text-primary">Clasificar Gasto</h2>
+            <Tag className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-text-primary">Clasificar Gasto</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-primary-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
             aria-label="Cerrar"
           >
-            <X className="h-5 w-5 text-text-muted" />
+            <X className="h-5 w-5 text-text-tertiary" />
           </button>
         </div>
 
         {/* Transaction Info */}
-        <div className="p-4 bg-primary-50/50 border-b border-primary-100">
-          <p className="font-medium text-text-primary">{transactionDescription}</p>
-          <p className="text-sm text-text-muted">{formatCurrency(transactionAmount)}</p>
+        <div className="p-4 bg-background-secondary/50 border-b border-neutral-100">
+          <p className="font-bold text-text-primary text-base">{transactionDescription}</p>
+          <p className="text-sm text-text-secondary font-medium">{formatCurrency(transactionAmount)}</p>
         </div>
 
         {/* Content */}
         <GlassCardContent className="p-4 overflow-y-auto max-h-[40vh]">
           {view === 'macro' && (
             <div className="space-y-2">
-              <p className="text-sm text-text-secondary mb-3">Selecciona una categoria:</p>
+              <p className="text-sm text-text-secondary mb-3 font-medium">Selecciona una categoría:</p>
               {macroCategories.map((cat) => {
                 const Icon = getCategoryIcon(cat.icon_slug);
                 return (
@@ -149,22 +149,22 @@ export function CategorizationModal({
                     onClick={() => handleSelectMacro(cat.id)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       selectedMacro === cat.id
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-white/50 text-text-primary hover:bg-white/70'
+                        ? 'bg-primary text-white shadow-soft'
+                        : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
                     }`}
                   >
                     <div className={`p-2 rounded-lg ${
                       selectedMacro === cat.id 
                         ? 'bg-white/20' 
-                        : 'bg-primary-100'
+                        : 'bg-background-secondary'
                     }`}>
                       <Icon className={`h-5 w-5 ${
                         selectedMacro === cat.id 
                           ? 'text-white' 
-                          : 'text-primary-600'
+                          : 'text-primary'
                       }`} />
                     </div>
-                    <span className="font-medium">{cat.name}</span>
+                    <span className="font-bold text-sm">{cat.name}</span>
                   </button>
                 );
               })}
@@ -176,12 +176,12 @@ export function CategorizationModal({
               {/* Back button */}
               <button
                 onClick={handleBack}
-                className="text-sm text-primary-600 hover:text-primary-700 mb-2"
+                className="text-sm text-primary font-bold hover:opacity-80 mb-2"
               >
-                ← Volver a categorias
+                ← Volver a categorías
               </button>
 
-              <p className="text-sm text-text-secondary mb-3">Subcategoria:</p>
+              <p className="text-sm text-text-secondary mb-3 font-medium">Subcategoría:</p>
               
               {subCategories.map((cat) => (
                 <button
@@ -189,21 +189,21 @@ export function CategorizationModal({
                   onClick={() => handleSelectSub(cat.id)}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                     selectedSub === cat.id
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-white/50 text-text-primary hover:bg-white/70'
+                      ? 'bg-primary text-white shadow-soft'
+                      : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
                   }`}
                 >
-                  <span className="font-medium">{cat.name}</span>
+                  <span className="font-bold text-sm">{cat.name}</span>
                 </button>
               ))}
 
               {/* Option to use macro category directly */}
-              <div className="pt-3 border-t border-primary-100 mt-3">
+              <div className="pt-3 border-t border-neutral-100 mt-3">
                 <button
                   onClick={() => selectedMacro && handleCategorize(selectedMacro)}
-                  className="w-full text-sm text-text-muted hover:text-text-primary py-2"
+                  className="w-full text-sm text-text-tertiary hover:text-text-primary py-2 font-medium"
                 >
-                  Usar categoria general
+                  Usar categoría general
                 </button>
               </div>
             </div>
@@ -212,7 +212,7 @@ export function CategorizationModal({
 
         {/* Footer */}
         {selectedSub && (
-          <div className="p-4 border-t border-primary-100">
+          <div className="p-4 border-t border-neutral-100">
             <Button
               onClick={() => handleCategorize(selectedSub)}
               isLoading={isLoading}
@@ -220,7 +220,7 @@ export function CategorizationModal({
               className="w-full"
             >
               <Check className="h-4 w-4 mr-2" />
-              Guardar Categoria
+              Guardar Categoría
             </Button>
           </div>
         )}

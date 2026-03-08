@@ -25,12 +25,12 @@ export default async function NotificacionesPage() {
       <div className="flex items-center gap-4 pt-4 pb-2">
         <Link 
           href="/configuracion"
-          className="p-2 rounded-xl hover:bg-primary-50 transition-colors"
+          className="p-2 rounded-xl hover:bg-neutral-50 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 text-text-muted" />
         </Link>
         <div>
-          <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary">
             Notificaciones
           </h1>
           <p className="text-text-secondary text-sm">
@@ -43,7 +43,7 @@ export default async function NotificacionesPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary-600" />
+            <MessageSquare className="h-5 w-5 text-primary" />
             Telegram Bot
           </GlassCardTitle>
         </GlassCardHeader>
@@ -56,7 +56,7 @@ export default async function NotificacionesPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-primary-600" />
+            <Bell className="h-5 w-5 text-primary" />
             Tipos de Alertas
           </GlassCardTitle>
         </GlassCardHeader>
@@ -83,7 +83,7 @@ export default async function NotificacionesPage() {
       </GlassCard>
 
       {/* Info */}
-      <div className="p-4 rounded-xl bg-primary-50/50 border border-primary-100">
+      <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-100">
         <p className="text-sm text-text-secondary">
           Las notificaciones se envían a través del bot de Telegram. Asegúrate de haber iniciado una conversación con el bot para recibir mensajes.
         </p>
@@ -105,8 +105,8 @@ function AlertToggle({ icon: Icon, title, description, defaultChecked }: Readonl
   return (
     <div className="flex items-center justify-between py-2">
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary-100">
-          <Icon className="h-4 w-4 text-primary-600" />
+        <div className="p-2 rounded-lg bg-background-secondary">
+          <Icon className="h-4 w-4 text-primary" />
         </div>
         <div>
           <p className="text-sm font-medium text-text-primary">{title}</p>
@@ -121,7 +121,7 @@ function AlertToggle({ icon: Icon, title, description, defaultChecked }: Readonl
           className="sr-only peer" 
           defaultChecked={defaultChecked}
         />
-        <div className="w-11 h-6 bg-primary-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+        <div className="w-11 h-6 bg-border-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
       </label>
     </div>
   );

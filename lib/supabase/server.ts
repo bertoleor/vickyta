@@ -7,7 +7,7 @@ import type { Database } from '@/types/database';
  * Uses @supabase/ssr for proper cookie handling in Next.js
  */
 export async function createClient() {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

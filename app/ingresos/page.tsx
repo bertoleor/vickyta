@@ -54,7 +54,7 @@ export default async function IngresosPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center pt-4 pb-2">
-        <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+        <h1 className="text-2xl font-bold text-text-primary">
           Ingresos
         </h1>
         <p className="text-text-secondary mt-1 text-sm">
@@ -64,12 +64,11 @@ export default async function IngresosPage() {
 
       {/* Summary Card */}
       <GlassCard variant="elevated" className="relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-secondary-300/30 to-primary-300/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
         
         <GlassCardContent className="relative">
           <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-xl bg-secondary-100">
-              <TrendingUp className="h-5 w-5 text-secondary-600" />
+            <div className="p-2 rounded-xl bg-background-secondary">
+              <TrendingUp className="h-5 w-5 text-primary" />
             </div>
             <span className="text-sm font-medium text-text-secondary">Total Ingresos</span>
           </div>
@@ -87,11 +86,11 @@ export default async function IngresosPage() {
       </GlassCard>
 
       {/* Add Income */}
-      <GlassCard variant="lavender">
+      <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2 text-base">
-            <div className="p-1.5 rounded-lg bg-primary-200">
-              <Plus className="h-4 w-4 text-primary-700" />
+            <div className="p-1.5 rounded-lg bg-background-secondary">
+              <Plus className="h-4 w-4 text-primary" />
             </div>
             Agregar Ingreso
           </GlassCardTitle>
@@ -101,12 +100,12 @@ export default async function IngresosPage() {
             <input
               type="text"
               placeholder="Descripción (ej: Colegio San Martín)"
-              className="flex-1 h-10 px-3 text-sm bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
+              className="flex-1 h-10 px-3 text-sm bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <input
               type="text"
               placeholder="$0"
-              className="w-28 h-10 px-3 text-sm bg-white/60 rounded-xl border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300 text-right"
+              className="w-28 h-10 px-3 text-sm bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20 text-right"
             />
             <Button size="sm" className="h-10 px-4">
               Agregar
@@ -125,7 +124,7 @@ export default async function IngresosPage() {
             <GlassCardHeader>
               <GlassCardTitle className="flex items-center justify-between text-base capitalize">
                 <span>{formatMonth(monthKey)}</span>
-                <span className="text-sm font-normal text-secondary-600">
+                <span className="text-sm font-medium text-primary">
                   +{formatCurrency(monthTotal)}
                 </span>
               </GlassCardTitle>
@@ -137,14 +136,14 @@ export default async function IngresosPage() {
                   className="flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-secondary-50 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-text-primary">
+                    <p className="text-sm font-bold text-text-primary">
                       {income.description || "Ingreso"}
                     </p>
-                    <p className="text-xs text-text-muted">
+                    <p className="text-xs text-text-muted font-medium">
                       {new Date(income.date).toLocaleDateString('es-AR')}
                     </p>
                   </div>
-                  <div className="text-sm font-semibold text-secondary-600">
+                  <div className="text-sm font-bold text-primary">
                     +{formatCurrency(income.amount)}
                   </div>
                 </div>

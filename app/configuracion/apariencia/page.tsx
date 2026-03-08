@@ -22,12 +22,12 @@ export default async function AparienciaPage() {
       <div className="flex items-center gap-4 pt-4 pb-2">
         <Link 
           href="/configuracion"
-          className="p-2 rounded-xl hover:bg-primary-50 transition-colors"
+          className="p-2 rounded-xl hover:bg-neutral-50 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 text-text-muted" />
         </Link>
         <div>
-          <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary">
             Apariencia
           </h1>
           <p className="text-text-secondary text-sm">
@@ -40,7 +40,7 @@ export default async function AparienciaPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary-600" />
+            <Palette className="h-5 w-5 text-primary" />
             Tema
           </GlassCardTitle>
         </GlassCardHeader>
@@ -53,7 +53,7 @@ export default async function AparienciaPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary-600" />
+            <Sparkles className="h-5 w-5 text-primary" />
             Color de Acento
           </GlassCardTitle>
         </GlassCardHeader>
@@ -70,26 +70,26 @@ export default async function AparienciaPage() {
         <GlassCardContent>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400" />
+              <div className="h-10 w-10 rounded-full bg-primary" />
               <div className="flex-1">
-                <div className="h-3 w-24 bg-primary-200 rounded-full mb-1" />
-                <div className="h-2 w-16 bg-primary-100 rounded-full" />
+                <div className="h-3 w-24 bg-background-secondary rounded-full mb-1" />
+                <div className="h-2 w-16 bg-neutral-100 rounded-full" />
               </div>
             </div>
-            <div className="h-12 rounded-xl bg-primary-50 border border-primary-100 flex items-center justify-center">
-              <span className="text-sm text-text-secondary">Tarjeta de ejemplo</span>
+            <div className="h-12 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center">
+              <span className="text-sm text-text-secondary font-medium">Tarjeta de ejemplo</span>
             </div>
             <div className="flex gap-2">
-              <div className="h-8 w-20 rounded-full bg-gradient-to-r from-primary-400 to-primary-500" />
-              <div className="h-8 w-20 rounded-full border-2 border-primary-300" />
+              <div className="h-8 w-20 rounded-full bg-primary" />
+              <div className="h-8 w-20 rounded-full border border-primary/30" />
             </div>
           </div>
         </GlassCardContent>
       </GlassCard>
 
       {/* Info */}
-      <div className="p-4 rounded-xl bg-primary-50/50 border border-primary-100">
-        <p className="text-sm text-text-secondary">
+      <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-100">
+        <p className="text-sm text-text-secondary font-medium">
           Los cambios de tema se aplican inmediatamente. El tema oscuro está en desarrollo y algunas secciones pueden no estar completamente adaptadas.
         </p>
       </div>
@@ -102,11 +102,11 @@ export default async function AparienciaPage() {
  */
 function AccentColorSelector() {
   const colors = [
-    { name: "Lavanda", value: "lavanda", color: "bg-primary-400" },
-    { name: "Rosa", value: "rosa", color: "bg-accent-400" },
-    { name: "Cian", value: "cian", color: "bg-cyan-400" },
-    { name: "Menta", value: "menta", color: "bg-emerald-400" },
-    { name: "Melocotón", value: "melocoton", color: "bg-orange-300" },
+    { name: "Azul Sistema", value: "azul", color: "bg-primary" },
+    { name: "Rojo", value: "rojo", color: "bg-danger" },
+    { name: "Índigo", value: "indigo", color: "bg-indigo-500" },
+    { name: "Verde", value: "verde", color: "bg-emerald-500" },
+    { name: "Naranja", value: "naranja", color: "bg-orange-500" },
   ];
 
   return (

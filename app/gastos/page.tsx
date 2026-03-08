@@ -47,7 +47,7 @@ export default async function GastosPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center pt-4 pb-2">
-        <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+        <h1 className="text-2xl font-bold text-text-primary">
           Manejo de Gastos
         </h1>
         <p className="text-text-secondary mt-1 text-sm">
@@ -60,14 +60,14 @@ export default async function GastosPage() {
 
       {/* Pending Telegram Messages */}
       {pendingExpenses.length > 0 && (
-        <GlassCard variant="rose">
+        <GlassCard variant="default">
           <GlassCardHeader>
             <GlassCardTitle className="flex items-center gap-2 text-base">
-              <div className="p-1.5 rounded-lg bg-accent-200">
-                <Package className="h-4 w-4 text-accent-700" />
+              <div className="p-1.5 rounded-lg bg-danger/10">
+                <Package className="h-4 w-4 text-danger" />
               </div>
               Pendientes de Categorizar
-              <span className="ml-auto text-xs font-normal text-text-muted bg-accent-100 px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-xs font-normal text-text-muted bg-danger/10 px-2 py-0.5 rounded-full">
                 {pendingExpenses.length}
               </span>
             </GlassCardTitle>
@@ -76,7 +76,7 @@ export default async function GastosPage() {
             {pendingExpenses.map((expense) => (
               <div 
                 key={expense.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-white/70 transition-colors cursor-pointer"
+                className="flex items-center justify-between p-3 rounded-xl bg-background-secondary/50 hover:bg-background-secondary transition-colors cursor-pointer"
               >
                 <div className="flex-1">
                   <p className="text-sm font-medium text-text-primary">
@@ -86,7 +86,7 @@ export default async function GastosPage() {
                     {formatCurrency(expense.amount)} • {new Date(expense.date).toLocaleDateString('es-AR')}
                   </p>
                 </div>
-                <Button variant="ghost" size="sm" className="text-accent-600">
+                <Button variant="ghost" size="sm" className="text-primary font-bold">
                   Categorizar
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -116,11 +116,11 @@ export default async function GastosPage() {
           <GlassCard key={parentCategory.id} variant="default">
             <GlassCardHeader>
               <GlassCardTitle className="flex items-center gap-2 text-base">
-                <div className="p-1.5 rounded-lg bg-primary-100">
-                  <Icon className="h-4 w-4 text-primary-600" />
+                <div className="p-1.5 rounded-lg bg-background-secondary">
+                  <Icon className="h-4 w-4 text-primary" />
                 </div>
                 {parentCategory.name}
-                <span className="ml-auto text-xs font-normal text-text-muted bg-primary-100 px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-xs font-normal text-text-muted bg-background-secondary px-2 py-0.5 rounded-full">
                   {categoryExpenses.length}
                 </span>
               </GlassCardTitle>
@@ -129,7 +129,7 @@ export default async function GastosPage() {
               {categoryExpenses.slice(0, 5).map((expense) => (
                 <div 
                   key={expense.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-primary-50 transition-colors cursor-pointer"
+                  className="flex items-center justify-between p-3 rounded-xl bg-background-secondary/50 hover:bg-background-secondary transition-colors cursor-pointer"
                 >
                   <div className="flex-1">
                     <p className="text-sm font-medium text-text-primary">
@@ -142,11 +142,11 @@ export default async function GastosPage() {
                 </div>
               ))}
               {categoryExpenses.length > 5 && (
-                <Button variant="ghost" className="w-full text-primary-600">
+                <Button variant="ghost" className="w-full text-primary font-bold">
                   Ver {categoryExpenses.length - 5} más
                 </Button>
               )}
-              <div className="pt-2 border-t border-primary-100">
+              <div className="pt-2 border-t border-border-light">
                 <p className="text-sm text-text-muted">
                   Total: <span className="font-semibold text-text-primary">{formatCurrency(totalAmount)}</span>
                 </p>

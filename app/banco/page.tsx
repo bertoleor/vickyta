@@ -35,7 +35,7 @@ export default async function BancoPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center pt-4 pb-2">
-        <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+        <h1 className="text-2xl font-bold text-text-primary">
           Banco
         </h1>
         <p className="text-text-secondary mt-1 text-sm">
@@ -53,10 +53,10 @@ export default async function BancoPage() {
             </p>
           </GlassCardContent>
         </GlassCard>
-        <GlassCard variant="lavender" className="text-center">
+        <GlassCard variant="default" className="text-center">
           <GlassCardContent>
             <p className="text-xs text-text-muted mb-1">Cuentas</p>
-            <p className="text-2xl font-bold text-primary-700">
+            <p className="text-2xl font-bold text-primary">
               {bankAccounts.length}
             </p>
           </GlassCardContent>
@@ -64,10 +64,10 @@ export default async function BancoPage() {
       </div>
 
       {/* Add Account Button */}
-      <GlassCard variant="lavender">
+      <GlassCard variant="default">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary-200">
-            <Plus className="h-5 w-5 text-primary-700" />
+          <div className="p-2 rounded-xl bg-background-secondary">
+            <Plus className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-text-primary">
@@ -87,11 +87,11 @@ export default async function BancoPage() {
           <GlassCard key={account.id} variant="default">
             <GlassCardHeader>
               <GlassCardTitle className="flex items-center gap-2 text-base">
-                <div className="p-1.5 rounded-lg bg-primary-100">
+                <div className="p-1.5 rounded-lg bg-background-secondary">
                   <Icon className={`h-4 w-4 ${config.color}`} />
                 </div>
                 {account.name}
-                <span className="ml-auto text-xs font-normal text-text-muted bg-primary-100 px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-xs font-normal text-text-muted bg-background-secondary px-2 py-0.5 rounded-full">
                   {config.label}
                 </span>
               </GlassCardTitle>

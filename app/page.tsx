@@ -78,7 +78,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header - Greeting with typewriter effect */}
+      {/* Header - Greeting */}
       <div className="text-center pt-4 pb-2">
         <Greeting name={displayName} />
         <p className="text-text-secondary mt-1 text-sm capitalize">
@@ -87,39 +87,39 @@ export default async function DashboardPage() {
       </div>
 
       {/* Balance Card */}
-      <GlassCard variant="elevated" className="relative overflow-hidden">
+      <GlassCard variant="elevated" className="relative overflow-hidden border-none shadow-soft-lg bg-primary text-white">
         <GlassCardContent>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-xl bg-primary-100">
-              <Wallet className="h-5 w-5 text-primary-600" />
+          <div className="flex items-center gap-2 mb-4 opacity-90">
+            <div className="p-2 rounded-xl bg-white/20">
+              <Wallet className="h-5 w-5 text-white" />
             </div>
-            <span className="text-sm font-medium text-text-secondary">Saldo Disponible</span>
+            <span className="text-sm font-medium">Saldo Disponible</span>
           </div>
           
           <div className="flex items-baseline gap-2 mb-6">
-            <span className="text-4xl font-bold text-text-primary tracking-tight">
+            <span className="text-4xl font-bold tracking-tight">
               {formatCurrency(totalBalance)}
             </span>
           </div>
 
           {/* Income/Expense mini cards */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary-100/60">
-              <div className="p-1.5 rounded-lg bg-secondary-200">
-                <TrendingUp className="h-4 w-4 text-secondary-700" />
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/15">
+              <div className="p-1.5 rounded-lg bg-white/20">
+                <TrendingUp className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-xs text-text-secondary">Ingresos</p>
-                <p className="text-sm font-semibold text-text-primary">+{formatCurrency(totalIncome)}</p>
+                <p className="text-xs opacity-80 font-medium">Ingresos</p>
+                <p className="text-sm font-semibold">+{formatCurrency(totalIncome)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-accent-100/60">
-              <div className="p-1.5 rounded-lg bg-accent-200">
-                <TrendingDown className="h-4 w-4 text-accent-700" />
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/15">
+              <div className="p-1.5 rounded-lg bg-white/20">
+                <TrendingDown className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-xs text-text-secondary">Gastos</p>
-                <p className="text-sm font-semibold text-text-primary">-{formatCurrency(totalExpenses)}</p>
+                <p className="text-xs opacity-80 font-medium">Gastos</p>
+                <p className="text-sm font-semibold">-{formatCurrency(totalExpenses)}</p>
               </div>
             </div>
           </div>
@@ -128,14 +128,14 @@ export default async function DashboardPage() {
 
       {/* Recent Transactions */}
       {recentTransactions.length > 0 && (
-        <GlassCard variant="default">
+        <GlassCard>
           <GlassCardHeader>
             <GlassCardTitle className="flex items-center gap-2 text-base">
-              <div className="p-1.5 rounded-lg bg-primary-100">
-                <MessageCircle className="h-4 w-4 text-primary-600" />
+              <div className="p-1.5 rounded-lg bg-background-secondary">
+                <MessageCircle className="h-4 w-4 text-primary" />
               </div>
               Movimientos Recientes
-              <span className="ml-auto text-xs font-normal text-text-muted bg-primary-100 px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-xs font-normal text-text-tertiary bg-background-secondary px-2 py-0.5 rounded-full">
                 {recentTransactions.length}
               </span>
             </GlassCardTitle>
@@ -144,23 +144,23 @@ export default async function DashboardPage() {
             {recentTransactions.map((tx) => (
               <div 
                 key={tx.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-primary-50 transition-colors cursor-pointer group"
+                className="flex items-center justify-between p-3 rounded-xl bg-background-secondary/50 hover:bg-background-secondary transition-colors cursor-pointer group"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-text-primary">
+                  <p className="text-sm font-semibold text-text-primary">
                     {tx.description || tx.category?.name || "Sin descripción"}
                   </p>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-xs text-text-tertiary font-medium">
                     {formatCurrency(tx.amount)} • {new Date(tx.date).toLocaleDateString('es-AR')}
                   </p>
                 </div>
-                <div className={`text-sm font-medium ${getTransactionTypeColor(tx.type)}`}>
+                <div className={`text-sm font-bold ${getTransactionTypeColor(tx.type)}`}>
                   {getTransactionTypeSign(tx.type)}{formatCurrency(tx.amount)}
                 </div>
               </div>
             ))}
             
-            <Button variant="ghost" className="w-full mt-2 text-primary-600 hover:text-primary-700">
+            <Button variant="ghost" className="w-full mt-2 text-primary font-semibold hover:bg-primary/5">
               Ver todos los movimientos
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
@@ -173,25 +173,26 @@ export default async function DashboardPage() {
 
       {/* Weekly Summary */}
       {weeklySummary.length > 0 && (
-        <GlassCard variant="cyan">
+        <GlassCard>
           <GlassCardHeader>
             <GlassCardTitle className="flex items-center gap-2 text-base">
-              <div className="p-1.5 rounded-lg bg-secondary-200">
-                <Sparkles className="h-4 w-4 text-secondary-700" />
+              <div className="p-1.5 rounded-lg bg-background-secondary">
+                <Sparkles className="h-4 w-4 text-primary" />
               </div>
               Esta Semana
             </GlassCardTitle>
           </GlassCardHeader>
-          <GlassCardContent className="space-y-3">
+          <GlassCardContent className="space-y-4">
             {weeklySummary.map((item) => (
-              <div key={item.category} className="space-y-1">
+              <div key={item.category} className="space-y-1.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary">{item.category}</span>
-                  <span className="text-text-muted">{item.percentage}%</span>
+                  <span className="text-text-secondary font-medium">{item.category}</span>
+                  <span className="text-text-tertiary font-bold">{item.percentage}%</span>
                 </div>
-                <div className="h-2 bg-white/50 rounded-full overflow-hidden">
+                <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
                   <div 
                     className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                    /* NOSONAR - Width must be dynamic */
                     style={{ width: `${item.percentage}%` }}
                   />
                 </div>
@@ -203,10 +204,10 @@ export default async function DashboardPage() {
 
       {/* Empty State */}
       {recentTransactions.length === 0 && (
-        <GlassCard variant="default" className="text-center py-8">
+        <GlassCard className="text-center py-8">
           <GlassCardContent>
-            <p className="text-text-secondary">No hay movimientos registrados aún.</p>
-            <p className="text-text-muted text-sm mt-1">Los gastos que registres aparecerán aquí.</p>
+            <p className="text-text-secondary font-medium">No hay movimientos registrados aún.</p>
+            <p className="text-text-tertiary text-sm mt-1">Los gastos que registres aparecerán aquí.</p>
           </GlassCardContent>
         </GlassCard>
       )}

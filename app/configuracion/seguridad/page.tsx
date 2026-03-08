@@ -22,12 +22,12 @@ export default async function SeguridadPage() {
       <div className="flex items-center gap-4 pt-4 pb-2">
         <Link 
           href="/configuracion"
-          className="p-2 rounded-xl hover:bg-primary-50 transition-colors"
+          className="p-2 rounded-xl hover:bg-neutral-50 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 text-text-muted" />
         </Link>
         <div>
-          <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary">
             Seguridad
           </h1>
           <p className="text-text-secondary text-sm">
@@ -40,7 +40,7 @@ export default async function SeguridadPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5 text-primary-600" />
+            <Key className="h-5 w-5 text-primary" />
             Cambiar PIN
           </GlassCardTitle>
         </GlassCardHeader>
@@ -53,7 +53,7 @@ export default async function SeguridadPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary-600" />
+            <Shield className="h-5 w-5 text-primary" />
             Información de Seguridad
           </GlassCardTitle>
         </GlassCardHeader>
@@ -73,8 +73,8 @@ export default async function SeguridadPage() {
 
           <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary-100">
-                <Smartphone className="h-4 w-4 text-primary-600" />
+              <div className="p-2 rounded-lg bg-background-secondary">
+                <Smartphone className="h-4 w-4 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-medium text-text-primary">Sesiones</p>
@@ -87,7 +87,7 @@ export default async function SeguridadPage() {
       </GlassCard>
 
       {/* Tips */}
-      <div className="p-4 rounded-xl bg-primary-50/50 border border-primary-100">
+      <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-100">
         <p className="text-sm text-text-secondary">
           <strong className="text-text-primary">Consejo:</strong> Usa un PIN que sea fácil de recordar pero difícil de adivinar. Evita secuencias como 1234 o tu fecha de nacimiento.
         </p>

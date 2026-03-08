@@ -31,19 +31,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
     const variants = {
       default: [
-        "bg-white/80",
-        "border border-border",
-        "focus:border-primary-400 focus:ring-primary-200",
+        "bg-background-secondary/50",
+        "border border-border-light",
+        "focus:bg-white focus:ring-primary/20 focus:border-primary/30",
       ].join(" "),
       filled: [
-        "bg-primary-50",
+        "bg-background-secondary",
         "border-transparent",
-        "focus:bg-white focus:border-primary-300 focus:ring-primary-200",
+        "focus:bg-white focus:ring-primary/20",
       ].join(" "),
       glass: [
-        "bg-white/60 backdrop-blur-sm",
-        "border border-primary-200/50",
-        "focus:bg-white/80 focus:border-primary-300 focus:ring-primary-200",
+        "bg-white/70 backdrop-blur-md",
+        "border border-border-light/50",
+        "focus:bg-white focus:ring-primary/20",
       ].join(" "),
     };
 
@@ -52,14 +52,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="mb-2 block text-sm font-medium text-text-primary"
+            className="mb-1.5 block text-sm font-bold text-text-primary"
           >
             {label}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary">
               {icon}
             </div>
           )}
@@ -68,17 +68,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              "w-full h-12 px-4 py-3 text-base rounded-2xl",
+              "w-full h-12 px-4 py-3 text-base rounded-xl",
               "placeholder:text-text-muted",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-primary-50",
+              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-background-secondary",
               "transition-all duration-200",
               variants[variant],
               icon && "pl-12",
-              error && "border-accent-400 focus:border-accent-500 focus:ring-accent-200",
+              error && "border-danger focus:ring-danger/20",
               className
             )}
-            aria-invalid={!!error}
+            aria-invalid={error ? "true" : "false"}
             aria-describedby={error ? `${inputId}-error` : undefined}
             {...props}
           />
@@ -86,7 +86,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="mt-2 text-sm text-accent-600"
+            className="mt-2 text-sm text-danger font-medium"
             role="alert"
           >
             {error}

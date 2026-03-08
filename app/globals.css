@@ -1,17 +1,15 @@
 /* 
- * Primary Font: Garet (local) - Used for all body text and UI elements
- * Secondary Fonts (Google): Dancing Script (handwritten), Poppins (display), Quicksand (delicate)
+ * Primary Font: System fonts for iOS look (Inter/San Francisco)
  */
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 /* stylelint-disable-next-line */
 @config "../tailwind.config.ts";
 
 /* Base styles */
 body {
-  @apply text-text-primary antialiased;
+  @apply text-text-primary antialiased bg-background;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  background: transparent;
 }
 
 /* Focus styles for accessibility */
@@ -19,213 +17,71 @@ body {
   @apply outline-2 outline-primary outline-offset-2;
 }
 
-/* Custom scrollbar for webkit browsers */
+/* Custom scrollbar - Discret and subtle */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F5F2FA;
-  border-radius: 9999px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary-300 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary-400;
+  @apply bg-neutral-200 rounded-full hover:bg-neutral-300 transition-colors;
 }
 
 /* ===========================================
-   GLASSMORPHISM UTILITIES - Aurora Pastel
+   iOS DESIGN UTILITIES
    =========================================== */
 
 @layer components {
-  /* Glass card effect - Base */
-  .glass {
-    background: rgba(255, 255, 255, 0.80);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(217, 194, 234, 0.35);
+  /* Clean iOS card */
+  .card-ios {
+    @apply bg-white border border-neutral-100 rounded-2xl shadow-soft transition-all duration-200;
   }
 
-  /* Glass card with Lavanda tint */
-  .glass-lavender {
-    background: rgba(217, 194, 234, 0.12);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(217, 194, 234, 0.30);
+  .card-ios-elevated {
+    @apply bg-white border border-neutral-100 rounded-2xl shadow-soft-lg transition-all duration-200;
   }
 
-  /* Glass card with Cian Pastel tint - Aurora effect */
-  .glass-cyan {
-    background: rgba(194, 227, 234, 0.12);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(194, 227, 234, 0.30);
-  }
-
-  /* Glass card with Rosa Viejo tint */
-  .glass-rose {
-    background: rgba(234, 194, 210, 0.12);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(234, 194, 210, 0.30);
-  }
-
-  /* Elevated glass effect */
-  .glass-elevated {
-    background: rgba(255, 255, 255, 0.85);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(217, 194, 234, 0.40);
-    box-shadow: 0 12px 48px rgba(74, 59, 90, 0.12);
-  }
-
-  /* Floating glass effect */
-  .glass-floating {
-    background: rgba(255, 255, 255, 0.90);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(217, 194, 234, 0.50);
-    box-shadow: 0 16px 64px rgba(74, 59, 90, 0.16);
-  }
-
-  /* Aurora gradient background */
-  .bg-gradient-aurora {
-    background: linear-gradient(135deg, 
-      #F9F7FD 0%, 
-      #FBF9FD 25%,
-      #F7F9FB 50%,
-      #FBF7F9 75%,
-      #F9F7FD 100%
-    );
-  }
-
-  /* Soft gradient for backgrounds */
-  .bg-gradient-soft {
-    background: linear-gradient(180deg, #F9F7FD 0%, #F5F2FA 100%);
-  }
-
-  /* Aurora boreala effect for cards */
-  .aurora-bg {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .aurora-bg::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(217, 194, 234, 0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  
-  .aurora-bg::after {
-    content: '';
-    position: absolute;
-    bottom: -50%;
-    left: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(194, 227, 234, 0.10) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  /* GlassCard utilities to remove inline styles */
-  .glass-noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  }
-
-  .glass-reflection {
-    background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%, transparent 100%);
+  /* iOS Blur Backdrop */
+  .blur-ios {
+    @apply bg-white/70 backdrop-blur-md;
   }
 
   /* Pill button base */
   .btn-pill {
-    @apply rounded-full px-6 py-3 font-medium transition-all duration-200;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2;
+    @apply rounded-full px-6 py-3 font-medium transition-all duration-200 active:scale-95;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20;
   }
 
   /* iOS-style input */
   .input-ios {
-    @apply w-full h-12 px-4 py-3 text-base bg-white/80 rounded-2xl;
-    @apply border border-border;
+    @apply w-full h-11 px-4 py-2 text-base bg-neutral-100/50 rounded-xl;
+    @apply border border-transparent;
     @apply placeholder:text-text-muted;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white focus:border-primary/20;
     @apply transition-all duration-200;
-  }
-
-  /* Card hover effect */
-  .card-hover {
-    @apply transition-all duration-300 ease-out;
-  }
-
-  .card-hover:hover {
-    box-shadow: 0 8px 32px rgba(217, 194, 234, 0.20);
-    transform: translateY(-2px);
-    border-color: rgba(217, 194, 234, 0.50);
   }
 
   /* Sidebar backdrop */
   .sidebar-backdrop {
-    background: rgba(74, 59, 90, 0.25);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    @apply bg-black/10 backdrop-blur-sm;
   }
 }
 
-/* Animations */
-@layer utilities {
-  /* Typewriter cursor */
-  .cursor-blink::after {
-    content: "|";
-    animation: blink 1s infinite;
-  }
-
-  /* Smooth transitions */
-  .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Press effect for buttons */
-  .press-effect:active {
-    transform: scale(0.98);
-  }
-}
-
-/* Refined Aurora Boreal Animation */
-@keyframes aurora {
-  from {
-    background-position: 50% 50%, 50% 50%;
-  }
-  to {
-    background-position: 350% 50%, 350% 50%;
-  }
-}
-
-/* Script font styling */
-.font-script {
-  font-family: "Dancing Script", "Noteworthy", "Marker Felt", cursive;
-  letter-spacing: 0.02em;
-}
-
-/* Selection color - Aurora pastel */
+/* Selection color - Neutral iOS */
 ::selection {
-  background: rgba(217, 194, 234, 0.40);
-  color: #4A3B5A;
+  background: rgba(0, 122, 255, 0.15);
+  color: #000;
 }
 
 /* Remove autofill background color */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.95) inset;
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset;
   transition: background-color 5000s ease-in-out 0s;
 }
 

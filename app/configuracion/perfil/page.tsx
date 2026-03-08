@@ -29,12 +29,12 @@ export default async function PerfilPage() {
       <div className="flex items-center gap-4 pt-4 pb-2">
         <Link 
           href="/configuracion"
-          className="p-2 rounded-xl hover:bg-primary-50 transition-colors"
+          className="p-2 rounded-xl hover:bg-neutral-50 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 text-text-muted" />
         </Link>
         <div>
-          <h1 className="font-delicate text-2xl font-semibold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary">
             Perfil
           </h1>
           <p className="text-text-secondary text-sm">
@@ -46,14 +46,14 @@ export default async function PerfilPage() {
       {/* Avatar Section */}
       <GlassCard variant="elevated" className="text-center">
         <div className="relative inline-block">
-          <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center shadow-glass mx-auto">
-            <span className="text-4xl font-semibold text-white">{initial}</span>
+          <div className="h-24 w-24 rounded-full bg-primary flex items-center justify-center shadow-soft mx-auto">
+            <span className="text-4xl font-bold text-white">{initial}</span>
           </div>
           <button 
-            className="absolute bottom-0 right-0 p-2 rounded-full bg-white shadow-md hover:bg-primary-50 transition-colors"
+            className="absolute bottom-0 right-0 p-2 rounded-full bg-white shadow-soft hover:bg-neutral-50 transition-colors"
             aria-label="Cambiar avatar"
           >
-            <Camera className="h-4 w-4 text-primary-600" />
+            <Camera className="h-4 w-4 text-primary" />
           </button>
         </div>
         <p className="text-sm text-text-muted mt-3">
@@ -65,7 +65,7 @@ export default async function PerfilPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary-600" />
+            <User className="h-5 w-5 text-primary" />
             Información Personal
           </GlassCardTitle>
         </GlassCardHeader>
@@ -78,7 +78,7 @@ export default async function PerfilPage() {
       <GlassCard variant="default">
         <GlassCardHeader>
           <GlassCardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary-600" />
+            <Mail className="h-5 w-5 text-primary" />
             Cuenta
           </GlassCardTitle>
         </GlassCardHeader>
