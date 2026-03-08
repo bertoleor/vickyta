@@ -7,6 +7,7 @@ import {
 import { getAccounts } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { formatCurrency, getAccountTypeConfig } from "@/lib/constants";
+import { AddAccountForm } from "@/components/ui/AddAccountForm";
 
 
 /**
@@ -63,20 +64,8 @@ export default async function BancoPage() {
         </GlassCard>
       </div>
 
-      {/* Add Account Button */}
-      <GlassCard variant="default">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-background-secondary">
-            <Plus className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-text-primary">
-              Agregar cuenta bancaria o tarjeta
-            </p>
-          </div>
-          <Button size="sm">Agregar</Button>
-        </div>
-      </GlassCard>
+      {/* Add Account Button / Form */}
+      <AddAccountForm />
 
       {/* Accounts List */}
       {bankAccounts.map((account) => {

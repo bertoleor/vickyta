@@ -699,6 +699,14 @@ export async function POST(request: NextRequest) {
     }
 
     const chatId = message.chat.id;
+
+    // ✅ Verificar si el usuario está autorizado
+    const allowedUsers = process.env.TELEGRAM_ALLOWED_USERS?.split(',') || [];
+    if (allowedUsers.length > 0 && !allowedUsers.includes(chatId.toString())) {
+      console.log(`Usuario no autorizado: ${chatId}`);
+      return NextResponse.json({ ok: true }); // Silencioso para no revelar existencia
+    }
+
     const text = message.text.trim();
 
     // Handle commands

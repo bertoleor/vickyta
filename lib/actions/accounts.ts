@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '@/lib/supabase/client';
+import { getUser } from '@/lib/supabase/server';
 import type {
   Account,
   AccountInsert,
@@ -156,7 +157,25 @@ export async function getAccountById(
 }
 
 /**
+ * Get the current user ID from the session
+ * Returns the user ID or null if not authenticated
+ */
+async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const user = await getUser();
+    if (!user) {
+      return null;
+    }
+    return user.id;
+  } catch (err) {
+    console.error('Unexpected error getting user:', err);
+    return null;
+  }
+}
+
+/**
  * Create a new account
+ * If user_id is not provided in accountData, it will be obtained from the session
  * @param accountData - The account data to insert
  * @returns Created account or error
  */
@@ -164,9 +183,29 @@ export async function createAccount(
   accountData: AccountInsert
 ): Promise<ApiResponse<Account>> {
   try {
+    // Get user_id from session if not provided
+    let userId = accountData.user_id;
+    if (!userId) {
+      const resolvedUserId = await getCurrentUserId();
+      if (!resolvedUserId) {
+        return {
+          data: null,
+          error: 'Usuario no autenticado',
+          success: false,
+        };
+      }
+      userId = resolvedUserId;
+    }
+
+    // Create account data with user_id
+    const accountWithUser = {
+      ...accountData,
+      user_id: userId,
+    };
+
     const { data, error } = await supabase
       .from('accounts')
-      .insert(accountData)
+      .insert(accountWithUser)
       .select()
       .single();
 
