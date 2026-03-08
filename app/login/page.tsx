@@ -49,7 +49,6 @@ export default function LoginPage() {
       <WelcomeScreen
         message="Bienvenida Vicky"
         onComplete={handleWelcomeComplete}
-        typingSpeed={80}
         delay={500}
       />
     );
@@ -68,18 +67,18 @@ export default function LoginPage() {
         }}
       />
       
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background">
         <div className="w-full max-w-sm">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-lg bg-emerald-600 flex items-center justify-center">
-              <Lock className="h-6 w-6 text-white" />
+          <div className="text-center mb-10">
+            <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-xl font-semibold text-slate-100">
-              Iniciar Sesion
+            <h1 className="text-3xl font-bold text-text-primary tracking-tight">
+              Iniciar Sesión
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Ingresa tus credenciales
+            <p className="text-text-secondary mt-2 font-medium">
+              Tu asistente financiero personal
             </p>
           </div>
 
@@ -87,17 +86,17 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="username" className="block text-sm font-bold text-text-primary mb-1.5 ml-1">
                 Usuario
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-text-tertiary" />
                 <input
                   type="text"
-                  placeholder="Usuario"
+                  placeholder="vickyta"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full h-12 pl-12 pr-4 text-base bg-background-secondary rounded-xl border border-transparent focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all outline-none"
                   required
                   disabled={isLoading}
                   autoComplete="username"
@@ -108,17 +107,17 @@ export default function LoginPage() {
 
             {/* PIN Field */}
             <div>
-              <label htmlFor="pin" className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="pin" className="block text-sm font-bold text-text-primary mb-1.5 ml-1">
                 PIN
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-text-tertiary" />
                 <input
                   type="password"
-                  placeholder="PIN de 6 digitos"
+                  placeholder="······"
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
-                  className="w-full h-11 pl-10 pr-3 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all tracking-widest"
+                  className="w-full h-12 pl-12 pr-4 text-lg bg-background-secondary rounded-xl border border-transparent focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all outline-none tracking-widest"
                   required
                   disabled={isLoading}
                   autoComplete="current-password"
@@ -128,26 +127,23 @@ export default function LoginPage() {
                   id="pin"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-slate-500">
-                Ingresa tu PIN de 6 digitos
-              </p>
             </div>
 
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
+              className="w-full h-12 mt-4 text-base font-bold"
               size="lg"
               isLoading={isLoading}
               disabled={isLoading}
             >
-              Iniciar Sesion
+              Entrar
             </Button>
           </form>
 
           {/* Footer */}
-          <p className="text-center text-xs text-slate-600 mt-8">
-            Finance PWA v1.0
+          <p className="text-center text-xs text-text-tertiary mt-12 font-medium">
+            Finance PWA v1.1 • Premium Experience
           </p>
         </div>
       </div>
