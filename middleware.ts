@@ -68,16 +68,13 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  let session = null;
-  try {
-    const { data } = await supabase.auth.getSession();
-    session = data.session;
-  } catch (err) {
-    console.error('Middleware session error:', err);
-  }
+  // Instead of an expensive `await supabase.auth.getSession()` which often crashes 
+  // the Vercel Edge Runtime (500 Invocation Failed) due to timeouts,
+  // we lightly check if the session cookie payload exists.
+  const sessionToken = request.cookies.get('sb-xbxqhnqyybpxbbjvjjdo-auth-token')?.value;
+  const isAuthenticated = !!sessionToken;
 
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
-  const isAuthenticated = !!session;
 
   // Redirect logic
   if (!isAuthenticated && !isPublicRoute) {

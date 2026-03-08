@@ -127,7 +127,7 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         }
       }
     }
-  }, [description, categories, selectedSubCategory]);
+  }, [description, categories, selectedSubCategory, findSuggestedCategory]);
 
   // Reset subcategory when macro changes
   useEffect(() => {
