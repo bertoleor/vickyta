@@ -1,20 +1,13 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
  * Middleware for authentication and route protection
  * 
- * Public routes:
- * - /login - Authentication page
- * - /auth/callback - OAuth callback
- * - /api/telegram - Telegram webhook (must be public)
+ * IMPORTANT: This middleware uses ZERO external dependencies (no @supabase/ssr)
+ * to guarantee compatibility with Vercel's Edge Runtime.
  * 
- * Protected routes:
- * - / (dashboard)
- * - /inbox
- * - /deudas
- * - /configuracion
- * - /historial
+ * Auth check is done by inspecting the Supabase session cookie directly.
+ * Deep session validation happens inside Server Components/Actions.
  */
 
 // Routes that don't require authentication
@@ -23,7 +16,7 @@ const PUBLIC_ROUTES = [
   '/auth/callback',
 ];
 
-// Routes that should bypass middleware entirely (API webhooks, static files, etc.)
+// Routes that should bypass middleware entirely
 const BYPASS_ROUTES = [
   '/api/telegram',
   '/_next',
@@ -32,7 +25,7 @@ const BYPASS_ROUTES = [
   '/manifest.json',
 ];
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip middleware for bypass routes
@@ -40,70 +33,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
+  // Lightweight auth check: look for ANY Supabase auth cookie
+  // Supabase stores session tokens in cookies prefixed with 'sb-'
+  const hasAuthCookie = request.cookies.getAll().some(
+    cookie => cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')
   );
-
-  // Instead of an expensive `await supabase.auth.getSession()` which often crashes 
-  // the Vercel Edge Runtime (500 Invocation Failed) due to timeouts,
-  // we lightly check if the session cookie payload exists.
-  const sessionToken = request.cookies.get('sb-xbxqhnqyybpxbbjvjjdo-auth-token')?.value;
-  const isAuthenticated = !!sessionToken;
 
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
 
   // Redirect logic
-  if (!isAuthenticated && !isPublicRoute) {
-    // Not authenticated and trying to access protected route
-    // Redirect to login
+  if (!hasAuthCookie && !isPublicRoute) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthenticated && pathname === '/login') {
-    // Already authenticated and trying to access login
-    // Redirect to dashboard
+  if (hasAuthCookie && pathname === '/login') {
     const dashboardUrl = new URL('/', request.url);
     return NextResponse.redirect(dashboardUrl);
   }
 
-  return supabaseResponse;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * 
-     * But we handle bypass routes in the middleware itself for more control
-     */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
