@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Check, ExternalLink, Loader2 } from "lucide-react";
-
-interface NotificationSettingsProps {
-  // In the future, this could receive initial state from server
-}
+import { updateTelegramPreferences, getUserPreferences } from "@/lib/actions/preferences";
 
 /**
  * Client Component for Telegram notification settings
@@ -16,26 +13,77 @@ interface NotificationSettingsProps {
  * - Link their Telegram account
  * - Configure notification preferences
  */
-export function NotificationSettings({}: NotificationSettingsProps) {
+export function NotificationSettings() {
   const [telegramUsername, setTelegramUsername] = useState("");
   const [isLinked, setIsLinked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [chatId, setChatId] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Load preferences on mount
+  useEffect(() => {
+    setMounted(true);
+    async function loadPreferences() {
+      try {
+        const result = await getUserPreferences();
+        if (result.success && result.data) {
+          if (result.data.telegram_chat_id) {
+            setChatId(result.data.telegram_chat_id);
+            setIsLinked(result.data.telegram_notifications_enabled);
+            setTelegramUsername("vinculado");
+          }
+        }
+      } catch (error) {
+        console.error("Error loading preferences:", error);
+      }
+    }
+    loadPreferences();
+  }, []);
 
   const handleLinkTelegram = async () => {
+    if (!telegramUsername || telegramUsername === "vinculado") return;
+    
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLinked(true);
-    setIsLoading(false);
+    try {
+      // For now, we use the username as a placeholder
+      // In a real implementation, the bot would send a verification code
+      // and we'd get the chat_id from the bot
+      const mockChatId = Date.now(); // Placeholder - in real app would come from bot
+      
+      await updateTelegramPreferences(mockChatId, true);
+      setIsLinked(true);
+      setChatId(mockChatId);
+    } catch (error) {
+      console.error("Error linking Telegram:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleUnlink = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setIsLinked(false);
-    setTelegramUsername("");
-    setIsLoading(false);
+    try {
+      if (chatId) {
+        await updateTelegramPreferences(chatId, false);
+      }
+      setIsLinked(false);
+      setChatId(null);
+      setTelegramUsername("");
+    } catch (error) {
+      console.error("Error unlinking Telegram:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (!mounted) {
+    return (
+      <div className="space-y-4">
+        <div className="h-16 rounded-xl bg-neutral-50 animate-pulse" />
+        <div className="h-10 rounded-xl bg-neutral-50 animate-pulse" />
+      </div>
+    );
+  }
 
   if (isLinked) {
     return (
@@ -46,7 +94,7 @@ export function NotificationSettings({}: NotificationSettingsProps) {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-green-800">Telegram vinculado</p>
-            <p className="text-xs text-green-600">@{telegramUsername}</p>
+            <p className="text-xs text-green-600">Notificaciones activas</p>
           </div>
         </div>
 
@@ -57,10 +105,14 @@ export function NotificationSettings({}: NotificationSettingsProps) {
             disabled={isLoading}
             className="flex-1"
           >
-            Desvincular
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Desvincular"
+            )}
           </Button>
           <a 
-            href="https://t.me/tu_bot" 
+            href="https://t.me/vickyta_finance_bot" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex-1"
@@ -87,10 +139,11 @@ export function NotificationSettings({}: NotificationSettingsProps) {
           value={telegramUsername}
           onChange={(e) => setTelegramUsername(e.target.value.replace("@", ""))}
           className="flex-1"
+          disabled={isLinked}
         />
         <Button 
           onClick={handleLinkTelegram}
-          disabled={!telegramUsername || isLoading}
+          disabled={!telegramUsername || isLoading || isLinked}
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />

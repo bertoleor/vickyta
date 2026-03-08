@@ -1,5 +1,6 @@
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 import { 
   User,
   Bell,
@@ -90,8 +91,9 @@ export default async function ConfiguracionPage() {
             {group.items.map((item) => {
               const Icon = item.icon;
               return (
-                <button
+                <Link
                   key={item.label}
+                  href={item.href || "#"}
                   className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-neutral-50 transition-colors text-left"
                 >
                   <div className="p-2 rounded-xl bg-background-secondary">
@@ -102,7 +104,7 @@ export default async function ConfiguracionPage() {
                     <p className="text-xs text-text-secondary font-medium">{item.description}</p>
                   </div>
                   <ChevronRight className="h-5 w-5 text-text-muted" />
-                </button>
+                </Link>
               );
             })}
           </GlassCardContent>

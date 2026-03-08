@@ -2,13 +2,16 @@ import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/
 import { Button } from "@/components/ui/Button";
 import { Greeting } from "@/components/ui/Greeting";
 import { ExpenseFormCard } from "@/components/ui/ExpenseFormCard";
+import { CategoryPieChart } from "@/components/ui/CategoryPieChart";
+import { WeeklyBarChart } from "@/components/ui/WeeklyBarChart";
 import { 
   Wallet, 
   Sparkles, 
   TrendingDown, 
   TrendingUp, 
   ChevronRight,
-  MessageCircle
+  MessageCircle,
+  BarChart3
 } from "lucide-react";
 import { getAccountSummary, ensureDefaultCategories } from "@/lib/actions";
 import { getRecentTransactions, getTransactionSummary } from "@/lib/actions/transactions";
@@ -46,6 +49,49 @@ export default async function DashboardPage() {
     today.toISOString().split('T')[0]
   );
   const summary = summaryResult.data;
+
+  // Get transactions for charts (last 30 days for pie chart)
+  const monthAgo = new Date(today);
+  monthAgo.setDate(monthAgo.getDate() - 30);
+  
+  const monthlyTransactionsResult = await getRecentTransactions(user?.id || "", 100);
+  const allTransactions = monthlyTransactionsResult.data || [];
+  
+  // Process data for pie chart - expenses by category
+  const expensesByCategory = allTransactions
+    .filter(t => t.type === 'gasto')
+    .reduce((acc, t) => {
+      const categoryName = t.category?.name || 'Sin categoría';
+      acc[categoryName] = (acc[categoryName] || 0) + Number(t.amount);
+      return acc;
+    }, {} as Record<string, number>);
+  
+  const pieChartData = Object.entries(expensesByCategory).map(([category_name, total]) => ({ category_name, total }));
+
+  // Process data for bar chart - weekly spending
+  const weeklyData: { day: string; dayName: string; amount: number; type: 'gasto' | 'ingreso' }[] = [];
+  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateKey = d.toISOString().split('T')[0];
+    const dayName = dayNames[d.getDay()];
+    const day = d.getDate().toString();
+    
+    const dayExpenses = allTransactions
+      .filter(t => t.type === 'gasto' && t.date.split('T')[0] === dateKey)
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+    
+    weeklyData.push({
+      day,
+      dayName,
+      amount: dayExpenses,
+      type: 'gasto' as const
+    });
+  }
+  
+  const barChartData = weeklyData;
 
   const dateOptions: Intl.DateTimeFormatOptions = { 
     weekday: 'long', 
@@ -129,6 +175,39 @@ export default async function DashboardPage() {
         </GlassCardContent>
       </GlassCard>
 
+      {/* Charts Section */}
+      {pieChartData.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GlassCard>
+            <GlassCardHeader>
+              <GlassCardTitle className="flex items-center gap-2 text-base">
+                <div className="p-1.5 rounded-lg bg-background-secondary">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                </div>
+                Gastos por Categoría
+              </GlassCardTitle>
+            </GlassCardHeader>
+            <GlassCardContent>
+              <CategoryPieChart data={pieChartData} />
+            </GlassCardContent>
+          </GlassCard>
+
+          <GlassCard>
+            <GlassCardHeader>
+              <GlassCardTitle className="flex items-center gap-2 text-base">
+                <div className="p-1.5 rounded-lg bg-background-secondary">
+                  <TrendingDown className="h-4 w-4 text-primary" />
+                </div>
+                Esta Semana
+              </GlassCardTitle>
+            </GlassCardHeader>
+            <GlassCardContent>
+              <WeeklyBarChart data={barChartData} />
+            </GlassCardContent>
+          </GlassCard>
+        </div>
+      )}
+
       {/* Recent Transactions */}
       {recentTransactions.length > 0 && (
         <GlassCard>
@@ -195,8 +274,7 @@ export default async function DashboardPage() {
                 <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
                   <div 
                     className={`h-full ${item.color} rounded-full transition-all duration-500`}
-                    /* NOSONAR - Width must be dynamic */
-                    style={{ width: `${item.percentage}%` }}
+                    style={{ width: `${item.percentage}%` } as React.CSSProperties}
                   />
                 </div>
               </div>

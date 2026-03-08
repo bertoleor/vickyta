@@ -74,6 +74,11 @@ export interface Account {
   type: AccountType;
   balance: number;
   created_at: string; // ISO 8601 timestamp
+  closing_day?: number | null;
+  due_day?: number | null;
+  interest_rate?: number | null;
+  last_interest_charge?: string | null;
+  notes?: string | null;
 }
 
 /**
@@ -159,7 +164,7 @@ export interface TransactionWithRelations extends Transaction {
  * Data needed to create a new account
  */
 export interface AccountInsert {
-  user_id: string;
+  user_id?: string;
   name: string;
   type: AccountType;
   balance?: number;
@@ -207,6 +212,11 @@ export interface AccountUpdate {
   name?: string;
   type?: AccountType;
   balance?: number;
+  closing_day?: number | null;
+  due_day?: number | null;
+  interest_rate?: number | null;
+  last_interest_charge?: string | null;
+  notes?: string | null;
 }
 
 /**
@@ -249,6 +259,30 @@ export interface AccountSummary {
   total_balance: number;
   accounts: Account[];
   by_type: Record<AccountType, number>;
+}
+
+// ============================================
+// USER PREFERENCES TYPES
+// ============================================
+
+export type ThemeMode = 'light' | 'dark' | 'system';
+export type AccentColor = 'azul' | 'rojo' | 'indigo' | 'verde' | 'naranja';
+
+/**
+ * User preferences for the app
+ */
+export interface UserPreferences {
+  id: string;
+  user_id: string;
+  theme: ThemeMode;
+  accent_color: AccentColor;
+  notify_daily_reminder: boolean;
+  notify_budget_alert: boolean;
+  notify_unusual_expense: boolean;
+  telegram_chat_id: number | null;
+  telegram_notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 /**

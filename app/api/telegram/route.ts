@@ -273,16 +273,34 @@ async function getAllAccounts(userId: string) {
 // ============================================
 
 async function getUserIdByTelegramId(telegramId: number): Promise<string | null> {
-  // For now, return a default user ID
-  // In production, you'd have a telegram_users table mapping telegram_id to user_id
-  const { data, error } = await supabase
-    .from('users')
-    .select('id')
-    .limit(1)
+  // First, try to find user by telegram_id in telegram_users table
+  const { data: telegramUser, error: telegramError } = await supabase
+    .from('telegram_users')
+    .select('user_id')
+    .eq('telegram_id', telegramId)
     .single();
 
-  if (error || !data) return null;
-  return data.id;
+  if (!telegramError && telegramUser) {
+    return telegramUser.user_id;
+  }
+
+  // If not found, get the first authenticated user (for personal app)
+  // This is a fallback for single-user apps
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  
+  if (authError || !authData.user) {
+    // Try to get user from public profiles
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id')
+      .limit(1)
+      .single();
+    
+    if (profileData) return profileData.id;
+    return null;
+  }
+  
+  return authData.user.id;
 }
 
 // ============================================
@@ -397,11 +415,31 @@ function getDeleteKeyboard(transactionId: string): object {
 // HANDLERS
 // ============================================
 
-async function handleStartCommand(chatId: number): Promise<void> {
+async function handleStartCommand(chatId: number, firstName?: string, username?: string): Promise<void> {
   await clearSession(chatId);
+
+  // Try to auto-link the user (for personal app)
+  const existingUserId = await getUserIdByTelegramId(chatId);
+  
+  // If user not linked, try to get current auth user
+  if (!existingUserId) {
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData?.user) {
+      // Auto-link this Telegram user to the current authenticated user
+      await supabase
+        .from('telegram_users')
+        .upsert({
+          telegram_id: chatId,
+          user_id: authData.user.id,
+          first_name: firstName,
+          username: username,
+        }, { onConflict: 'telegram_id' });
+    }
+  }
+
   await sendTelegramMessage(
     chatId,
-    `<b>Hola!</b>\n\n` +
+    `<b>Hola${firstName ? ' ' + firstName : ''}!</b>\n\n` +
     `Para registrar un gasto, escribe el monto y descripcion:\n` +
     `<code>4500 verduleria</code>\n\n` +
     `Comandos disponibles:\n` +
@@ -715,7 +753,7 @@ export async function POST(request: NextRequest) {
       
       switch (command) {
         case '/start':
-          await handleStartCommand(chatId);
+          await handleStartCommand(chatId, message.from?.first_name, message.from?.username);
           break;
         case '/hoy':
           await handleHoyCommand(chatId);

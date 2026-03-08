@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
 
 // Inter font - Primary typography for iOS look
 const inter = Inter({
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} bg-background`}>
       <body className="font-sans antialiased text-text-primary">
+        <ServiceWorkerRegistration />
         <div className="relative flex min-h-screen w-full bg-background">
           {/* Sidebar - Hidden by default, toggles via hamburger menu */}
           <Sidebar />

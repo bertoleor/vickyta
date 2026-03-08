@@ -63,7 +63,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               {icon}
             </div>
           )}
-          {/* NOSONAR */}
+          {/* NOSONAR - aria-invalid must be dynamic */}
           <input
             ref={ref}
             id={inputId}
@@ -78,8 +78,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               error && "border-danger focus:ring-danger/20",
               className
             )}
-            aria-invalid={error ? "true" : "false"}
-            aria-describedby={error ? `${inputId}-error` : undefined}
+            {...(error ? { "aria-invalid": "true", "aria-describedby": `${inputId}-error` } : {})}
             {...props}
           />
         </div>

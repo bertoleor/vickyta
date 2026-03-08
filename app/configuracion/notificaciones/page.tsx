@@ -1,4 +1,4 @@
-import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
+import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard"; 
 import { 
   Bell,
   ArrowLeft,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { NotificationSettings } from "./NotificationSettings";
+import { AlertToggleClient } from "./index";
 
 /**
  * Notifications Settings Page - Server Component
@@ -61,22 +62,25 @@ export default async function NotificacionesPage() {
           </GlassCardTitle>
         </GlassCardHeader>
         <GlassCardContent className="space-y-4">
-          <AlertToggle 
-            icon={Calendar}
+          <AlertToggleClient 
+            icon={<Calendar className="h-4 w-4 text-primary" />}
             title="Recordatorios de gastos"
             description="Recordatorio diario para registrar gastos"
+            preferenceKey="notify_daily_reminder"
             defaultChecked={true}
           />
-          <AlertToggle 
-            icon={TrendingUp}
+          <AlertToggleClient 
+            icon={<TrendingUp className="h-4 w-4 text-primary" />}
             title="Límite de presupuesto"
             description="Alerta cuando superas el 80% del presupuesto"
+            preferenceKey="notify_budget_alert"
             defaultChecked={true}
           />
-          <AlertToggle 
-            icon={AlertCircle}
+          <AlertToggleClient 
+            icon={<AlertCircle className="h-4 w-4 text-primary" />}
             title="Gastos inusuales"
             description="Detecta gastos mayores al promedio"
+            preferenceKey="notify_unusual_expense"
             defaultChecked={false}
           />
         </GlassCardContent>
@@ -88,41 +92,6 @@ export default async function NotificacionesPage() {
           Las notificaciones se envían a través del bot de Telegram. Asegúrate de haber iniciado una conversación con el bot para recibir mensajes.
         </p>
       </div>
-    </div>
-  );
-}
-
-interface AlertToggleProps {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-  defaultChecked: boolean;
-}
-
-function AlertToggle({ icon: Icon, title, description, defaultChecked }: Readonly<AlertToggleProps>) {
-  const toggleId = `toggle-${title.toLowerCase().replaceAll(/\s/g, '-')}`;
-  
-  return (
-    <div className="flex items-center justify-between py-2">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-background-secondary">
-          <Icon className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-text-primary">{title}</p>
-          <p className="text-xs text-text-muted">{description}</p>
-        </div>
-      </div>
-      <label className="relative inline-flex items-center cursor-pointer" htmlFor={toggleId}>
-        <span className="sr-only">{title}</span>
-        <input 
-          type="checkbox" 
-          id={toggleId}
-          className="sr-only peer" 
-          defaultChecked={defaultChecked}
-        />
-        <div className="w-11 h-6 bg-border-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-      </label>
     </div>
   );
 }

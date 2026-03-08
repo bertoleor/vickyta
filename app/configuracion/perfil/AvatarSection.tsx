@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Camera, Loader2 } from "lucide-react";
 import { GlassCard, GlassCardContent } from "@/components/ui/GlassCard";
 import { uploadAvatar } from "./actions";
@@ -40,7 +41,7 @@ export function AvatarSection({ avatarUrl, displayName, initial }: AvatarSection
       } else {
         setSuccess(true);
         // Reload the page to show new avatar
-        window.location.reload();
+        globalThis.location.reload();
       }
     } catch {
       setError("Error al subir la imagen");
@@ -59,10 +60,12 @@ export function AvatarSection({ avatarUrl, displayName, initial }: AvatarSection
         <div className="relative inline-block">
           {/* Avatar Image or Initial */}
           {avatarUrl ? (
-            <img
+            <Image
               src={avatarUrl}
               alt={`Avatar de ${displayName}`}
               className="h-24 w-24 rounded-full object-cover shadow-soft mx-auto"
+              width={96}
+              height={96}
             />
           ) : (
             <div className="h-24 w-24 rounded-full bg-primary flex items-center justify-center shadow-soft mx-auto">
@@ -91,6 +94,7 @@ export function AvatarSection({ avatarUrl, displayName, initial }: AvatarSection
             accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleFileChange}
             className="hidden"
+            aria-label="Subir imagen de perfil"
           />
         </div>
 
