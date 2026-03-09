@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { GlassCard, GlassCardContent } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { TransactionDetailsModal } from "@/components/ui/TransactionDetailsModal";
 import { 
   History, 
   TrendingDown,
@@ -35,6 +36,7 @@ export default function HistorialPage() {
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
 
   // Load data
   useEffect(() => {
@@ -341,7 +343,8 @@ export default function HistorialPage() {
                 {txs.map((item) => (
                   <div 
                     key={item.id}
-                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors -mx-2 px-2"
+                    onClick={() => setSelectedTransaction(item)}
                   >
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">
@@ -382,6 +385,14 @@ export default function HistorialPage() {
             </p>
           </GlassCardContent>
         </GlassCard>
+      )}
+
+      {/* Transaction Details Modal */}
+      {selectedTransaction && (
+        <TransactionDetailsModal 
+          transaction={selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+        />
       )}
     </div>
   );

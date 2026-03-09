@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ThemeSelector } from "./ThemeSelector";
+import { AccentColorSelector } from "./AccentColorSelector";
 
 /**
  * Appearance Settings Page - Server Component
@@ -62,63 +63,12 @@ export default async function AparienciaPage() {
         </GlassCardContent>
       </GlassCard>
 
-      {/* Preview */}
-      <GlassCard variant="elevated">
-        <GlassCardHeader>
-          <GlassCardTitle>Vista Previa</GlassCardTitle>
-        </GlassCardHeader>
-        <GlassCardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary" />
-              <div className="flex-1">
-                <div className="h-3 w-24 bg-background-secondary rounded-full mb-1" />
-                <div className="h-2 w-16 bg-neutral-100 rounded-full" />
-              </div>
-            </div>
-            <div className="h-12 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center">
-              <span className="text-sm text-text-secondary font-medium">Tarjeta de ejemplo</span>
-            </div>
-            <div className="flex gap-2">
-              <div className="h-8 w-20 rounded-full bg-primary" />
-              <div className="h-8 w-20 rounded-full border border-primary/30" />
-            </div>
-          </div>
-        </GlassCardContent>
-      </GlassCard>
-
       {/* Info */}
       <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-100">
         <p className="text-sm text-text-secondary font-medium">
-          Los cambios de tema se aplican inmediatamente. El tema oscuro está en desarrollo y algunas secciones pueden no estar completamente adaptadas.
+          Los cambios de tema y color se aplican inmediatamente.
         </p>
       </div>
-    </div>
-  );
-}
-
-/**
- * Accent Color Selector Component
- */
-function AccentColorSelector() {
-  const colors = [
-    { name: "Azul Sistema", value: "azul", color: "bg-primary" },
-    { name: "Rojo", value: "rojo", color: "bg-danger" },
-    { name: "Índigo", value: "indigo", color: "bg-indigo-500" },
-    { name: "Verde", value: "verde", color: "bg-emerald-500" },
-    { name: "Naranja", value: "naranja", color: "bg-orange-500" },
-  ];
-
-  return (
-    <div className="flex flex-wrap gap-3">
-      {colors.map((color) => (
-        <button
-          key={color.value}
-          className={`h-10 w-10 rounded-full ${color.color} transition-transform hover:scale-110 focus:ring-2 focus:ring-offset-2 focus:ring-primary-400`}
-          aria-label={`Seleccionar color ${color.name}`}
-          title={color.name}
-        />
-      ))}
     </div>
   );
 }
