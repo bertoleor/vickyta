@@ -56,6 +56,12 @@ const navItems: NavItem[] = [
     description: "Movimientos anteriores",
   },
   {
+    label: "Presupuestos",
+    href: "/presupuestos",
+    icon: Wallet,
+    description: "Control de gastos",
+  },
+  {
     label: "Configuración",
     href: "/configuracion",
     icon: Settings,

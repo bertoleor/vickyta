@@ -10,7 +10,8 @@ import {
   TrendingDown,
   TrendingUp,
   Filter,
-  Calendar
+  Calendar,
+  Download
 } from "lucide-react";
 import { getTransactions, getCategories, getAccounts } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth/actions";
@@ -37,6 +38,7 @@ export default function HistorialPage() {
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -170,6 +172,17 @@ export default function HistorialPage() {
     return cat?.name || "Sin categoría";
   };
 
+  const getMethodLabel = (method: string): string => {
+    switch (method) {
+      case "efectivo": return "Efectivo";
+      case "tarjeta_debito": return "Tarjeta de Débito";
+      case "tarjeta_credito": return "Tarjeta de Crédito";
+      case "transferencia": return "Transferencia";
+      case "otro": return "Otro";
+      default: return method;
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
@@ -201,6 +214,33 @@ export default function HistorialPage() {
               {[filterType !== "all", filterCategory !== "all", filterAccount !== "all", !!filterDateFrom, !!filterDateTo, !!searchTerm].filter(Boolean).length}
             </span>
           )}
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => {
+            // Export to CSV
+            const headers = ["Fecha", "Descripción", "Monto", "Tipo", "Método", "Categoría"];
+            const rows = filteredTransactions.map(tx => [
+              new Date(tx.date).toLocaleDateString("es-AR"),
+              `"${tx.description || "Sin descripción"}"`,
+              tx.type === "ingreso" ? formatCurrency(tx.amount) : `-${formatCurrency(tx.amount)}`,
+              tx.type === "ingreso" ? "Ingreso" : "Gasto",
+              getMethodLabel(tx.method),
+              getCategoryName(tx.category_id)
+            ]);
+            const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `historial-gastos-${new Date().toISOString().split("T")[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Exportar
         </Button>
       </div>
 

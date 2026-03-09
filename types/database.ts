@@ -286,6 +286,28 @@ export interface UserPreferences {
 }
 
 /**
+ * Budget for a category
+ */
+export type BudgetPeriod = 'weekly' | 'monthly' | 'yearly';
+
+export interface Budget {
+  id: string;
+  user_id: string;
+  category_id: string | null; // null means total budget
+  amount: number;
+  period: BudgetPeriod;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Budget with category relation
+ */
+export interface BudgetWithCategory extends Budget {
+  category?: Category | null;
+}
+
+/**
  * Category tree node for UI display
  */
 export interface CategoryTreeNode {
