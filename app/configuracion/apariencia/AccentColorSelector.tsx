@@ -30,7 +30,7 @@ export function AccentColorSelector() {
     async function loadPreferences() {
       try {
         const result = await getUserPreferences();
-        if (result.success && result.data && result.data.accent_color) {
+        if (result.success && result.data?.accent_color) {
           setSelectedColor(result.data.accent_color);
           applyAccentColor(result.data.accent_color);
         }

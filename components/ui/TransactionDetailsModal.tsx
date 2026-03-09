@@ -106,12 +106,22 @@ export function TransactionDetailsModal({
 
   const TypeIcon = getTypeIcon(transaction.type);
 
+  const getTypeBackgroundColor = (type: string): string => {
+    if (type === 'gasto') return 'bg-red-100';
+    if (type === 'ingreso') return 'bg-green-100';
+    return 'bg-blue-100';
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+        role="button"
+        tabIndex={-1}
+        aria-label="Cerrar modal"
       />
 
       {/* Modal */}
@@ -133,10 +143,7 @@ export function TransactionDetailsModal({
           {/* Amount & Type */}
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${
-                transaction.type === 'gasto' ? 'bg-red-100' : 
-                transaction.type === 'ingreso' ? 'bg-green-100' : 'bg-blue-100'
-              }`}>
+              <div className={`p-2 rounded-lg ${getTypeBackgroundColor(transaction.type)}`}>
                 <TypeIcon className={`h-5 w-5 ${getTypeColor(transaction.type)}`} />
               </div>
               <div>

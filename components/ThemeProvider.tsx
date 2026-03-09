@@ -17,7 +17,7 @@ export function ThemeProvider() {
       
       if (savedTheme === "system") {
         root.classList.remove("dark", "light");
-        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const isDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
         root.classList.add(isDark ? "dark" : "light");
       } else {
         root.classList.remove("dark", "light");
@@ -42,7 +42,7 @@ export function ThemeProvider() {
     }
 
     // Listen for system theme changes
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       const currentTheme = localStorage.getItem("theme");
       if (currentTheme === "system") {

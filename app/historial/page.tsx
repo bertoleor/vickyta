@@ -345,6 +345,9 @@ export default function HistorialPage() {
                     key={item.id}
                     className="flex items-center justify-between py-3 first:pt-0 last:pb-0 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors -mx-2 px-2"
                     onClick={() => setSelectedTransaction(item)}
+                    onKeyDown={(e) => e.key === 'Enter' && setSelectedTransaction(item)}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">
