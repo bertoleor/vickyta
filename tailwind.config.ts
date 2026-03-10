@@ -14,17 +14,17 @@ const config: Config = {
         // iOS SYSTEM COLORS (Inspired)
         // ===========================================
         
-        // Primary Blue (iOS SystemBlue)
+        // Primary Blue (iOS SystemBlue) - Uses CSS variable for accent color
         primary: {
-          DEFAULT: "#007AFF",
+          DEFAULT: "var(--accent-color, #8B5CF6)",
           50: "#EBF5FF",
           100: "#D1E9FF",
           200: "#A3D3FF",
           300: "#75BDFF",
           400: "#47A7FF",
-          500: "#007AFF",     // Base
-          600: "#0062CC",     // Hover
-          700: "#004B99",     // Active
+          500: "var(--accent-color, #8B5CF6)",
+          600: "#0062CC",
+          700: "#004B99",
           800: "#003366",
           900: "#001B33",
         },
