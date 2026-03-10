@@ -93,7 +93,7 @@ export default function LoginPage() {
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-text-tertiary" />
                 <input
                   type="text"
-                  placeholder="vickyta"
+                  placeholder="usuario"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full h-12 pl-12 pr-4 text-base bg-background-secondary rounded-xl border border-transparent focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all outline-none"
@@ -143,7 +143,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="text-center text-xs text-text-tertiary mt-12 font-medium">
-            Finance PWA v1.1 • Premium Experience
+            Finance PWA v1.8 • Ornellita Experience
           </p>
         </div>
       </div>

@@ -112,7 +112,7 @@ export function NotificationSettings() {
             )}
           </Button>
           <a 
-            href="https://t.me/vickyta_finance_bot" 
+            href="https://t.me/crismorobot" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex-1"

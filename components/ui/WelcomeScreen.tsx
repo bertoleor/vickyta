@@ -23,7 +23,7 @@ export function WelcomeScreen({
   useEffect(() => {
     const timeout = setTimeout(() => {
       onComplete();
-    }, delay + 3000); // Wait 3 seconds after delay
+    }, delay + 5000); // Wait 5 seconds after delay
 
     return () => clearTimeout(timeout);
   }, [delay, onComplete]);

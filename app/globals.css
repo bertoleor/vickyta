@@ -6,6 +6,19 @@
 /* stylelint-disable-next-line */
 @config "../tailwind.config.ts";
 
+/* CSS Variables for Theme and Accent Color */
+:root {
+  --accent-color: #8B5CF6; /* Default purple */
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #E5E5EA;
+  --text-muted: #8E8E93;
+}
+
 /* Base styles */
 body {
   @apply text-text-primary antialiased bg-background;

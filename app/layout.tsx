@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { DashboardWithTour } from "@/components/DashboardWithTour";
 
 // Inter font - Primary typography for iOS look
 const inter = Inter({
@@ -35,15 +36,17 @@ export default function RootLayout({
       <body className="font-sans antialiased text-text-primary">
         <ThemeProvider />
         <ServiceWorkerRegistration />
-        <div className="relative flex min-h-screen w-full bg-background">
-          {/* Sidebar - Hidden by default, toggles via hamburger menu */}
-          <Sidebar />
-          
-          {/* Main Content Area */}
-          <main className="flex-1 p-4 pt-20 md:p-8">
-            {children}
-          </main>
-        </div>
+        <DashboardWithTour>
+          <div className="relative flex min-h-screen w-full bg-background">
+            {/* Sidebar - Hidden by default, toggles via hamburger menu */}
+            <Sidebar />
+            
+            {/* Main Content Area */}
+            <main className="flex-1 p-4 pt-20 md:p-8">
+              {children}
+            </main>
+          </div>
+        </DashboardWithTour>
       </body>
     </html>
   );

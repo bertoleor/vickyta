@@ -251,7 +251,7 @@ export async function addTransaction(
       userId = resolvedUserId;
     }
 
-    if (!transactionData.account_id) {
+    if (!transactionData.account_id && transactionData.method !== 'efectivo') {
       return {
         data: null,
         error: 'Cuenta no especificada',
@@ -295,15 +295,18 @@ export async function addTransaction(
     }
 
     // Update account balance based on transaction type
-    let balanceChange = transactionData.amount;
-    
-    if (transactionData.type === 'gasto') {
-      // Expense: subtract from account
-      balanceChange = -transactionData.amount;
-    }
-    // For 'ingreso', balanceChange is already positive
+    // Skip if payment method is efectivo (no bank account involved)
+    if (transactionData.account_id && transactionData.method !== 'efectivo') {
+      let balanceChange = transactionData.amount;
+      
+      if (transactionData.type === 'gasto') {
+        // Expense: subtract from account
+        balanceChange = -transactionData.amount;
+      }
+      // For 'ingreso', balanceChange is already positive
 
-    await updateAccountBalance(transactionData.account_id, balanceChange);
+      await updateAccountBalance(transactionData.account_id, balanceChange);
+    }
 
     return {
       data: data as Transaction,

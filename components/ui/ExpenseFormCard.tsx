@@ -460,25 +460,47 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         </div>
       )}
 
-      {/* Account Selection (if not efectivo) */}
-      {paymentMethod !== 'efectivo' && transactionType !== 'transferencia_interna' && (
+      {/* Account Selection (for efectivo show option, for others show buttons) */}
+      {transactionType !== 'transferencia_interna' && (
         <div>
-          <label htmlFor="account-select" className="text-sm text-text-secondary mb-2 block">Cuenta</label>
-          <select
-            id="account-select"
-            title="Seleccionar cuenta de origen"
-            value={selectedAccount || ''}
-            onChange={(e) => setSelectedAccount(e.target.value)}
-            className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {accounts
+          <p className="text-sm text-text-secondary mb-2 block">
+            {paymentMethod === 'efectivo' ? 'Tipo de pago' : 'Cuenta'}</p>
+          <div className={`grid gap-2 ${paymentMethod === 'efectivo' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {/* Efectivo option */}
+            <button
+              onClick={() => {
+                setPaymentMethod('efectivo');
+                const cashAccount = accounts.find(a => a.type === 'efectivo');
+                if (cashAccount) setSelectedAccount(cashAccount.id);
+              }}
+              className={`p-3 rounded-xl text-center transition-all ${
+                paymentMethod === 'efectivo'
+                  ? 'bg-primary text-white'
+                  : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
+              }`}
+            >
+              <Banknote className="h-5 w-5 mx-auto mb-1" />
+              <span className="text-sm font-medium">Efectivo</span>
+            </button>
+            
+            {/* Bank accounts (only show if not efectivo) */}
+            {paymentMethod !== 'efectivo' && accounts
               .filter(a => a.type === 'banco' || a.type === 'billetera_virtual')
               .map(acc => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({formatCurrency(acc.balance)})
-                </option>
+                <button
+                  key={acc.id}
+                  onClick={() => setSelectedAccount(acc.id)}
+                  className={`p-3 rounded-xl text-left transition-all ${
+                    selectedAccount === acc.id
+                      ? 'bg-primary text-white'
+                      : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
+                  }`}
+                >
+                  <span className="text-sm font-medium block">{acc.name}</span>
+                  <span className="text-xs opacity-70">{formatCurrency(acc.balance)}</span>
+                </button>
               ))}
-          </select>
+          </div>
         </div>
       )}
 

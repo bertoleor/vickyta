@@ -8,7 +8,6 @@ import {
   Wallet,
   Plus,
   Trash2,
-  Edit2,
   Check,
   X,
   TrendingDown,
@@ -25,7 +24,6 @@ export default function PresupuestosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   
   // Form state
   const [newAmount, setNewAmount] = useState("");
@@ -157,10 +155,12 @@ export default function PresupuestosPage() {
             </div>
             
             <div>
-              <label className="block text-sm text-text-secondary mb-1">
+              <label htmlFor="new-category-select" className="block text-sm text-text-secondary mb-1">
                 Categoría (opcional)
               </label>
               <select
+                id="new-category-select"
+                title="Seleccionar categoría"
                 className="w-full px-3 py-2 rounded-xl border border-border-light bg-background text-text-primary"
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
@@ -173,10 +173,12 @@ export default function PresupuestosPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-text-secondary mb-1">
+              <label htmlFor="new-period-select" className="block text-sm text-text-secondary mb-1">
                 Período
               </label>
               <select
+                id="new-period-select"
+                title="Seleccionar período"
                 className="w-full px-3 py-2 rounded-xl border border-border-light bg-background text-text-primary"
                 value={newPeriod}
                 onChange={(e) => setNewPeriod(e.target.value as BudgetPeriod)}
@@ -235,8 +237,7 @@ export default function PresupuestosPage() {
                         {budget.category?.name || "Presupuesto Total"}
                       </p>
                       <p className="text-xs text-text-muted capitalize">
-                        {budget.period === "weekly" ? "Semanal" : 
-                         budget.period === "monthly" ? "Mensual" : "Anual"}
+                        {budget.period === "weekly" ? "Semanal" : budget.period === "monthly" ? "Mensual" : "Anual"}
                       </p>
                     </div>
                     <div className="text-right">
