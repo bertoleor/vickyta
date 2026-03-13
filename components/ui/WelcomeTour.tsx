@@ -100,11 +100,9 @@ export function WelcomeTour({ onComplete }: WelcomeTourProps) {
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
       <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden animate-slide-up">
-        {/* Progress bar */}
         <div className="h-1 bg-neutral-100">
           <div 
-            className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${progress}%` }}
+            className={`h-full bg-primary transition-all duration-300 wp-${Math.min(100, Math.max(0, Math.round(progress)))}`}
           />
         </div>
 

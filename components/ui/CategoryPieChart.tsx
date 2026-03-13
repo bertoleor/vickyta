@@ -22,11 +22,12 @@ const DEFAULT_COLORS = [
   "#84CC16", // Lime
 ];
 
-export function CategoryPieChart({ data, colors = DEFAULT_COLORS }: CategoryChartProps) {
+export function CategoryPieChart({ data, colors = DEFAULT_COLORS }: Readonly<CategoryChartProps>) {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
     
     return data.map((item, index) => ({
+      id: `cat-${index}-${item.category_name}`,
       name: item.category_name,
       value: item.total,
       color: colors[index % colors.length],
@@ -60,8 +61,8 @@ export function CategoryPieChart({ data, colors = DEFAULT_COLORS }: CategoryChar
               dataKey="value"
               strokeWidth={0}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+              {chartData.map((entry) => (
+                <Cell key={entry.id} fill={entry.color} />
               ))}
             </Pie>
             <Tooltip 
@@ -89,11 +90,10 @@ export function CategoryPieChart({ data, colors = DEFAULT_COLORS }: CategoryChar
 
       {/* Legend */}
       <div className="mt-4 grid grid-cols-2 gap-2">
-        {chartData.slice(0, 6).map((item) => (
+        {chartData.slice(0, 6).map((item, index) => (
           <div key={item.name} className="flex items-center gap-2 text-xs">
             <div 
-              className="w-3 h-3 rounded-full flex-shrink-0" 
-              style={{ backgroundColor: item.color }}
+              className={`w-3 h-3 rounded-full flex-shrink-0 bg-chart-${index % 8}`} 
             />
             <span className="text-text-secondary truncate">{item.name}</span>
           </div>

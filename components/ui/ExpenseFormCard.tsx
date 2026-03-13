@@ -2,29 +2,24 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { 
-  ChevronLeft, 
-  ChevronRight, 
   Check, 
-  Calendar,
   DollarSign,
   CreditCard,
   Banknote,
   ArrowRightLeft,
   TrendingDown,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent } from "@/components/ui/GlassCard";
 import { addTransaction } from "@/lib/actions/transactions";
 import { getCategories, getAccounts } from "@/lib/actions";
-import { formatCurrency, TRAFFIC_LIGHT_CONFIG } from "@/lib/constants";
-import type { Category, Account, PaymentMethod, TransactionType, TrafficLight, RecurringFrequency } from "@/types/database";
+import { formatCurrency } from "@/lib/constants";
+import type { Category, Account, PaymentMethod, TransactionType, TrafficLight } from "@/types/database";
 
 interface ExpenseFormCardProps {
   readonly onSuccess?: () => void;
 }
-
-type Step = 'amount' | 'category' | 'subcategory' | 'details';
 
 // Keyword matching for smart category suggestion
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
@@ -40,20 +35,13 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
 };
 
 /**
- * Smart Expense Form Card
- * Multi-step form in a card format
- * 
- * Steps:
- * 1. Amount & Date
- * 2. Macro Category
- * 3. Sub Category
- * 4. Details (payment method, tag, etc.)
+ * Simplified Expense Form Card
+ * Single view, fast input
  */
 export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
-  // State
-  const [step, setStep] = useState<Step>('amount');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   
   // Data
   const [categories, setCategories] = useState<Category[]>([]);
@@ -63,16 +51,11 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState("");
-  const [selectedMacroCategory, setSelectedMacroCategory] = useState<string | null>(null);
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo');
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [destinationAccount, setDestinationAccount] = useState<string | null>(null);
   const [tag, setTag] = useState<TrafficLight | null>(null);
-  const [isInstallment, setIsInstallment] = useState(false);
-  const [totalInstallments, setTotalInstallments] = useState(1);
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringFrequency, setRecurringFrequency] = useState<RecurringFrequency>('mensual');
   
   // Transaction type
   const [transactionType, setTransactionType] = useState<TransactionType>('gasto');
@@ -84,10 +67,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         getCategories(),
         getAccounts(""), 
       ]);
-      
+       
       if (catResult.data) setCategories(catResult.data);
       if (accResult.data) setAccounts(accResult.data);
-      
+       
       // Set default account (first cash account if available)
       const cashAccount = accResult.data?.find(a => a.type === 'efectivo');
       if (cashAccount) setSelectedAccount(cashAccount.id);
@@ -97,10 +80,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
   // Get parent categories (macro)
   const macroCategories = categories.filter(c => c.parent_id === null);
-  
+
   // Get subcategories for selected macro
-  const subCategories = selectedMacroCategory 
-    ? categories.filter(c => c.parent_id === selectedMacroCategory)
+  const subCategories = selectedCategory 
+    ? categories.filter(c => c.parent_id === selectedCategory)
     : [];
 
   // Smart category suggestion based on description
@@ -117,35 +100,25 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
     return null;
   }, [categories]);
 
+  // Auto-suggest category when typing description
   useEffect(() => {
-    if (description && !selectedSubCategory) {
+    if (description && !selectedCategory) {
       const found = findSuggestedCategory(description);
       if (found) {
-        if (found.parent_id) {
-          setSelectedMacroCategory(found.parent_id);
-          setSelectedSubCategory(found.id);
-        } else {
-          setSelectedMacroCategory(found.id);
-        }
+        setSelectedCategory(found.id);
       }
     }
-  }, [description, categories, selectedSubCategory, findSuggestedCategory]);
-
-  // Reset subcategory when macro changes
-  useEffect(() => {
-    setSelectedSubCategory(null);
-  }, [selectedMacroCategory]);
+  }, [description, selectedCategory, findSuggestedCategory]);
 
   // Handle payment method changes
   useEffect(() => {
     if (paymentMethod === 'efectivo') {
       const cashAccount = accounts.find(a => a.type === 'efectivo');
       if (cashAccount) setSelectedAccount(cashAccount.id);
-      setIsInstallment(false);
-    }
-    
-    if (paymentMethod !== 'credito') {
-      setIsInstallment(false);
+    } else {
+      // For cards, suggest first bank account
+      const bankAccount = accounts.find(a => a.type === 'banco');
+      if (bankAccount) setSelectedAccount(bankAccount.id);
     }
   }, [paymentMethod, accounts]);
 
@@ -159,43 +132,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
     }
   }, [transactionType, accounts]);
 
-  // Navigation
-  const goNext = () => {
-    const steps: Step[] = ['amount', 'category', 'subcategory', 'details'];
-    const currentIndex = steps.indexOf(step);
-    if (currentIndex < steps.length - 1) {
-      setStep(steps[currentIndex + 1]);
-    }
-  };
-
-  const goBack = () => {
-    const steps: Step[] = ['amount', 'category', 'subcategory', 'details'];
-    const currentIndex = steps.indexOf(step);
-    if (currentIndex > 0) {
-      setStep(steps[currentIndex - 1]);
-    }
-  };
-
-  // Validation per step
-  const canProceed = () => {
-    switch (step) {
-      case 'amount':
-        return Number.parseFloat(amount) > 0;
-      case 'category':
-        return selectedMacroCategory !== null;
-      case 'subcategory':
-        return true;
-      case 'details':
-        return true;
-      default:
-        return false;
-    }
-  };
-
   // Submit
   const handleSubmit = async () => {
     if (!amount || Number.parseFloat(amount) <= 0) {
-      setError("Ingresa un monto valido");
+      setError("Ingresa un monto válido");
       return;
     }
 
@@ -204,20 +144,20 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
     try {
       const result = await addTransaction({
-        user_id: '', // Server will get from session
+        user_id: '',
         account_id: selectedAccount || '',
         destination_account_id: transactionType === 'transferencia_interna' ? destinationAccount : null,
-        category_id: selectedSubCategory || selectedMacroCategory || null,
+        category_id: selectedCategory,
         amount: Number.parseFloat(amount),
         date,
         description,
         type: transactionType,
         method: paymentMethod,
-        is_installment: isInstallment && paymentMethod === 'credito',
-        current_installment: isInstallment ? 1 : null,
-        total_installments: isInstallment ? totalInstallments : null,
-        is_recurring: isRecurring,
-        recurring_frequency: isRecurring ? recurringFrequency : null,
+        is_installment: false,
+        current_installment: null,
+        total_installments: null,
+        is_recurring: false,
+        recurring_frequency: null,
         tag,
       });
 
@@ -227,468 +167,290 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
         // Reset form
         setAmount("");
         setDescription("");
-        setSelectedMacroCategory(null);
-        setSelectedSubCategory(null);
+        setSelectedCategory(null);
         setTag(null);
-        setIsInstallment(false);
-        setIsRecurring(false);
-        setStep('amount');
+        setShowDetails(false);
+        setTransactionType('gasto');
         onSuccess?.();
       }
     } catch {
-      setError("Error al guardar el gasto");
+      setError("Error al guardar");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Render step indicator
-  const renderStepIndicator = () => {
-    const steps = ['amount', 'category', 'subcategory', 'details'];
-    const currentIndex = steps.indexOf(step);
-    
-    return (
-      <div className="flex items-center justify-center gap-2 mb-4">
-        {steps.map((s, i) => (
-          <div key={s} className="flex items-center">
-            <div 
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                i <= currentIndex 
-                  ? 'bg-primary text-white' 
-                  : 'bg-background-secondary text-text-tertiary'
-              }`}
-            >
-              {i < currentIndex ? <Check className="h-4 w-4" /> : i + 1}
-            </div>
-            {i < steps.length - 1 && (
-              <div className={`w-8 h-0.5 ${i < currentIndex ? 'bg-primary' : 'bg-background-secondary'}`} />
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
 
-  // Step 1: Amount & Date
-  const renderAmountStep = () => (
+  return (
     <div className="space-y-4">
-      {/* Transaction Type */}
-      <div className="flex gap-2">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-bold text-text-primary">Agregar Movimiento</h3>
+        {amount && Number(amount) > 0 && (
+          <span className="text-2xl font-bold text-[var(--accent-color,#8B5CF6)]">
+            ${Number(amount).toLocaleString('es-AR')}
+          </span>
+        )}
+      </div>
+
+      {/* Transaction Type Tabs */}
+      <div className="flex gap-1 p-1 bg-background-secondary rounded-xl">
         <button
           onClick={() => setTransactionType('gasto')}
-          className={`flex-1 p-3 rounded-xl text-sm font-bold transition-all ${
+          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
             transactionType === 'gasto'
-              ? 'bg-primary text-white'
-              : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
+              ? 'bg-danger text-white shadow-sm'
+              : 'text-text-secondary hover:bg-background-tertiary'
           }`}
         >
-          <TrendingDown className="h-4 w-4 mx-auto mb-1" />
+          <TrendingDown className="h-4 w-4" />
           Gasto
         </button>
         <button
           onClick={() => setTransactionType('ingreso')}
-          className={`flex-1 p-3 rounded-xl text-sm font-bold transition-all ${
+          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
             transactionType === 'ingreso'
-              ? 'bg-primary text-white'
-              : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
+              ? 'bg-emerald-500 text-white shadow-sm'
+              : 'text-text-secondary hover:bg-background-tertiary'
           }`}
         >
-          <TrendingUp className="h-4 w-4 mx-auto mb-1" />
+          <TrendingUp className="h-4 w-4" />
           Ingreso
         </button>
         <button
           onClick={() => setTransactionType('transferencia_interna')}
-          className={`flex-1 p-3 rounded-xl text-sm font-bold transition-all ${
+          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
             transactionType === 'transferencia_interna'
-              ? 'bg-primary text-white'
-              : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'text-text-secondary hover:bg-background-tertiary'
           }`}
         >
-          <ArrowRightLeft className="h-4 w-4 mx-auto mb-1" />
+          <ArrowRightLeft className="h-4 w-4" />
           Transferir
         </button>
       </div>
 
-      {/* Amount */}
-      <div>
-        <label htmlFor="amount-input" className="text-sm text-text-secondary mb-1 block">Monto</label>
-        <div className="relative">
-          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
+      {/* Amount Input - Large and prominent */}
+      <div className="relative">
+        <div className="flex items-center justify-center bg-background-secondary rounded-2xl py-4">
+          <DollarSign className="h-8 w-8 text-text-muted mr-2" />
           <input
             id="amount-input"
             type="number"
             inputMode="decimal"
-            placeholder="0.00"
+            placeholder="0"
             title="Monto del movimiento"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full h-14 pl-10 pr-4 text-2xl font-bold text-center bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="text-4xl font-bold text-center bg-transparent w-32 focus:outline-none"
             autoFocus
           />
         </div>
       </div>
 
-      {/* Date */}
+      {/* Category Grid - Main action */}
       <div>
-        <label htmlFor="date-input" className="text-sm text-text-secondary mb-1 block">Fecha</label>
-        <div className="relative">
-          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted" />
-          <input
-            id="date-input"
-            type="date"
-            title="Fecha del movimiento"
-            placeholder="DD/MM/AAAA"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full h-12 pl-10 pr-4 bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+        <p className="text-sm text-text-secondary mb-2">Categoría</p>
+        <div className="grid grid-cols-2 gap-2">
+          {macroCategories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`p-3 rounded-xl text-sm font-medium text-left transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-[var(--accent-color,#8B5CF6)] text-white ring-2 ring-[var(--accent-color,#8B5CF6)] ring-offset-2'
+                  : 'bg-background-secondary hover:bg-background-tertiary'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Description */}
-      <div>
-        <label htmlFor="description-input" className="text-sm text-text-secondary mb-1 block">Descripcion (opcional)</label>
-        <input
-          id="description-input"
-          type="text"
-          title="Descripción del movimiento"
-          placeholder="Que compraste?"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
-      </div>
-    </div>
-  );
-
-  // Step 2: Macro Category
-  const renderCategoryStep = () => (
-    <div className="space-y-3">
-      <p className="text-sm text-text-secondary text-center">Selecciona una categoria</p>
-      <div className="grid grid-cols-2 gap-2">
-        {macroCategories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedMacroCategory(cat.id)}
-            className={`p-4 rounded-xl text-left transition-all ${
-              selectedMacroCategory === cat.id
-                ? 'bg-primary text-white'
-                : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
-            }`}
-          >
-            <span className="font-bold text-sm">{cat.name}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Step 3: Sub Category
-  const renderSubcategoryStep = () => (
-    <div className="space-y-3">
-      <p className="text-sm text-text-secondary text-center">
-        {subCategories.length > 0 ? 'Subcategoria (opcional)' : 'No hay subcategorias disponibles'}
-      </p>
+      {/* Subcategories - Show if parent selected */}
       {subCategories.length > 0 && (
-        <div className="space-y-2 max-h-48 overflow-y-auto">
+        <div className="flex flex-wrap gap-2">
           {subCategories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedSubCategory(cat.id)}
-              className={`w-full p-3 rounded-xl text-left transition-all ${
-                selectedSubCategory === cat.id
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                selectedCategory === cat.id
                   ? 'bg-primary text-white'
-                  : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
+                  : 'bg-background-secondary text-text-secondary'
               }`}
             >
-              <span className="text-sm font-medium">{cat.name}</span>
+              {cat.name}
             </button>
           ))}
         </div>
       )}
-      <button
-        onClick={() => goNext()}
-        className="w-full p-2 text-sm text-text-muted hover:text-text-primary"
-      >
-        {subCategories.length > 0 ? 'Omitir' : 'Continuar'}
-      </button>
-    </div>
-  );
 
-  // Step 4: Details
-  const renderDetailsStep = () => (
-    <div className="space-y-4">
-      {/* Payment Method */}
-      {transactionType !== 'transferencia_interna' && (
-        <div>
-          <p className="text-sm text-text-secondary mb-2 block">Metodo de pago</p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => setPaymentMethod('efectivo')}
-              className={`p-3 rounded-xl text-sm font-bold transition-all ${
-                paymentMethod === 'efectivo'
-                  ? 'bg-primary text-white'
-                  : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
-              }`}
-            >
-              <Banknote className="h-4 w-4 mx-auto mb-1" />
-              Efectivo
-            </button>
-            <button
-              onClick={() => setPaymentMethod('debito')}
-              className={`p-3 rounded-xl text-sm font-bold transition-all ${
-                paymentMethod === 'debito'
-                  ? 'bg-primary text-white'
-                  : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
-              }`}
-            >
-              <CreditCard className="h-4 w-4 mx-auto mb-1" />
-              Debito
-            </button>
-            <button
-              onClick={() => setPaymentMethod('credito')}
-              className={`p-3 rounded-xl text-sm font-bold transition-all ${
-                paymentMethod === 'credito'
-                  ? 'bg-primary text-white'
-                  : 'bg-background-secondary text-text-secondary hover:bg-background-tertiary'
-              }`}
-            >
-              <CreditCard className="h-4 w-4 mx-auto mb-1" />
-              Credito
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Quick Options Row */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="flex-1 py-2 px-3 rounded-xl bg-background-secondary text-sm font-medium text-text-secondary hover:bg-background-tertiary transition-colors"
+        >
+          {showDetails ? 'Menos opciones' : 'Más opciones'}
+        </button>
+      </div>
 
-      {/* Account Selection (for efectivo show option, for others show buttons) */}
-      {transactionType !== 'transferencia_interna' && (
-        <div>
-          <p className="text-sm text-text-secondary mb-2 block">
-            {paymentMethod === 'efectivo' ? 'Tipo de pago' : 'Cuenta'}</p>
-          <div className={`grid gap-2 ${paymentMethod === 'efectivo' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            {/* Efectivo option */}
-            <button
-              onClick={() => {
-                setPaymentMethod('efectivo');
-                const cashAccount = accounts.find(a => a.type === 'efectivo');
-                if (cashAccount) setSelectedAccount(cashAccount.id);
-              }}
-              className={`p-3 rounded-xl text-center transition-all ${
-                paymentMethod === 'efectivo'
-                  ? 'bg-primary text-white'
-                  : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
-              }`}
-            >
-              <Banknote className="h-5 w-5 mx-auto mb-1" />
-              <span className="text-sm font-medium">Efectivo</span>
-            </button>
-            
-            {/* Bank accounts (only show if not efectivo) */}
-            {paymentMethod !== 'efectivo' && accounts
-              .filter(a => a.type === 'banco' || a.type === 'billetera_virtual')
-              .map(acc => (
-                <button
-                  key={acc.id}
-                  onClick={() => setSelectedAccount(acc.id)}
-                  className={`p-3 rounded-xl text-left transition-all ${
-                    selectedAccount === acc.id
-                      ? 'bg-primary text-white'
-                      : 'bg-background-secondary/50 text-text-primary hover:bg-background-secondary'
-                  }`}
-                >
-                  <span className="text-sm font-medium block">{acc.name}</span>
-                  <span className="text-xs opacity-70">{formatCurrency(acc.balance)}</span>
-                </button>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {/* Transfer accounts */}
-      {transactionType === 'transferencia_interna' && (
-        <div className="space-y-3">
+      {/* Expanded Details */}
+      {showDetails && (
+        <div className="space-y-4 p-4 bg-background-secondary rounded-xl">
+          {/* Description */}
           <div>
-            <label htmlFor="origin-account" className="text-sm text-text-secondary mb-2 block">Desde</label>
-            <select
-              id="origin-account"
-              title="Seleccionar cuenta de origen"
-              value={selectedAccount || ''}
-              onChange={(e) => setSelectedAccount(e.target.value)}
-              className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light"
-            >
-              {accounts.map(acc => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({formatCurrency(acc.balance)})
-                </option>
-              ))}
-            </select>
+            <label htmlFor="description-input" className="text-xs text-text-muted mb-1 block">Descripción</label>
+            <input
+              id="description-input"
+              type="text"
+              placeholder="¿Qué compraste?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full h-10 px-3 bg-white rounded-lg border border-border-light text-sm"
+            />
           </div>
+
+          {/* Date */}
           <div>
-            <label htmlFor="destination-account" className="text-sm text-text-secondary mb-2 block">Hacia</label>
-            <select
-              id="destination-account"
-              title="Seleccionar cuenta de destino"
-              value={destinationAccount || ''}
-              onChange={(e) => setDestinationAccount(e.target.value)}
-              className="w-full h-12 px-4 bg-background-secondary/50 rounded-xl border border-border-light"
-            >
-              {accounts.map(acc => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name}
-                </option>
-              ))}
-            </select>
+            <label htmlFor="date-input" className="text-xs text-text-muted mb-1 block">Fecha</label>
+            <input
+              id="date-input"
+              type="date"
+              title="Fecha del movimiento"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full h-10 px-3 bg-white rounded-lg border border-border-light text-sm"
+            />
           </div>
-        </div>
-      )}
 
-      {/* Installments (only for credito) */}
-      {paymentMethod === 'credito' && (
-        <div className="p-3 rounded-xl bg-white/50">
-          <label className="flex items-center gap-2 cursor-pointer" htmlFor="installment-checkbox">
-            <input
-              id="installment-checkbox"
-              type="checkbox"
-              title="Marcar si es un pago en cuotas"
-              checked={isInstallment}
-              onChange={(e) => setIsInstallment(e.target.checked)}
-              className="w-4 h-4 rounded border-primary-300"
-            />
-            <span className="text-sm text-text-primary">Es en cuotas</span>
-          </label>
-          {isInstallment && (
-            <div className="mt-2 flex items-center gap-2">
-              <label htmlFor="installments-select" className="text-sm text-text-secondary">Cuota 1 de</label>
-              <select
-                id="installments-select"
-                title="Cantidad de cuotas"
-                value={totalInstallments}
-                onChange={(e) => setTotalInstallments(Number.parseInt(e.target.value, 10))}
-                className="h-8 px-2 bg-white rounded-lg border border-primary-200"
-              >
-                {[2, 3, 6, 9, 12, 18, 24].map(n => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Recurring Expense - for services, subscriptions, etc. */}
-      {transactionType === 'gasto' && paymentMethod !== 'credito' && (
-        <div className="p-3 rounded-xl bg-white/50">
-          <label className="flex items-center gap-2 cursor-pointer" htmlFor="recurring-checkbox">
-            <input
-              id="recurring-checkbox"
-              type="checkbox"
-              title="Marcar si es un gasto recurrente (servicio, suscripción)"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="w-4 h-4 rounded border-primary-300"
-            />
-            <span className="text-sm text-text-primary">Gasto recurrente (servicio, suscripción)</span>
-          </label>
-          {isRecurring && (
-            <div className="mt-2 flex items-center gap-2">
-              <label htmlFor="frequency-select" className="text-sm text-text-secondary">Frecuencia:</label>
-              <select
-                id="frequency-select"
-                title="Frecuencia del gasto recurrente"
-                value={recurringFrequency}
-                onChange={(e) => setRecurringFrequency(e.target.value as RecurringFrequency)}
-                className="h-8 px-2 bg-white rounded-lg border border-primary-200"
-              >
-                <option value="diario">Diario</option>
-                <option value="semanal">Semanal</option>
-                <option value="quincenal">Quincenal</option>
-                <option value="mensual">Mensual</option>
-              </select>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Traffic Light Tag */}
-      {transactionType === 'gasto' && (
-        <div>
-          <p className="text-sm text-text-secondary mb-2 block">Etiqueta (opcional)</p>
-          <div className="flex gap-2">
-            {Object.entries(TRAFFIC_LIGHT_CONFIG).map(([key, config]) => (
+          {/* Payment Method */}
+          <fieldset>
+            <legend id="payment-method-label" className="text-xs text-text-muted mb-2 block">Método de pago</legend>
+            <div className="flex gap-2">
               <button
-                key={key}
-                onClick={() => setTag(tag === key ? null : key as TrafficLight)}
-                className={`flex-1 p-2 rounded-xl text-xs font-medium transition-all ${
-                  tag === key
-                    ? `${config.bgColor} ${config.color} ring-2 ring-offset-1 ring-current`
-                    : 'bg-white/50 text-text-muted hover:bg-white/70'
+                onClick={() => setPaymentMethod('efectivo')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1 ${
+                  paymentMethod === 'efectivo'
+                    ? 'bg-primary text-white'
+                    : 'bg-white text-text-secondary border border-border-light'
                 }`}
               >
-                {config.label}
+                <Banknote className="h-4 w-4" />
+                Efectivo
               </button>
-            ))}
-          </div>
+              <button
+                onClick={() => setPaymentMethod('debito')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1 ${
+                  paymentMethod === 'debito'
+                    ? 'bg-primary text-white'
+                    : 'bg-white text-text-secondary border border-border-light'
+                }`}
+              >
+                <CreditCard className="h-4 w-4" />
+                Débito
+              </button>
+              <button
+                onClick={() => setPaymentMethod('credito')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1 ${
+                  paymentMethod === 'credito'
+                    ? 'bg-primary text-white'
+                    : 'bg-white text-text-secondary border border-border-light'
+                }`}
+              >
+                <CreditCard className="h-4 w-4" />
+                Crédito
+              </button>
+            </div>
+          </fieldset>
+
+          {/* Account Selection */}
+          {paymentMethod !== 'efectivo' && transactionType !== 'transferencia_interna' && (
+            <fieldset>
+              <legend id="account-selection-label" className="text-xs text-text-muted mb-2 block">Cuenta</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {accounts
+                  .filter(a => a.type === 'banco' || a.type === 'billetera_virtual')
+                  .map(acc => (
+                    <button
+                      key={acc.id}
+                      onClick={() => setSelectedAccount(acc.id)}
+                      className={`p-2 rounded-lg text-left text-sm transition-all ${
+                        selectedAccount === acc.id
+                          ? 'bg-primary text-white'
+                          : 'bg-white text-text-secondary border border-border-light'
+                      }`}
+                    >
+                      <div className="font-medium">{acc.name}</div>
+                      <div className="text-xs opacity-70">{formatCurrency(acc.balance)}</div>
+                    </button>
+                  ))}
+              </div>
+            </fieldset>
+          )}
+
+          {/* Transfer accounts */}
+          {transactionType === 'transferencia_interna' && (
+            <div className="space-y-2">
+              <div>
+                <label htmlFor="source-account-select" className="text-xs text-text-muted mb-1 block">Desde</label>
+                <select
+                  id="source-account-select"
+                  title="Cuenta de origen"
+                  value={selectedAccount || ''}
+                  onChange={(e) => setSelectedAccount(e.target.value)}
+                  className="w-full h-10 px-3 bg-white rounded-lg border border-border-light text-sm"
+                >
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="dest-account-select" className="text-xs text-text-muted mb-1 block">Hacia</label>
+                <select
+                  id="dest-account-select"
+                  title="Cuenta de destino"
+                  value={destinationAccount || ''}
+                  onChange={(e) => setDestinationAccount(e.target.value)}
+                  className="w-full h-10 px-3 bg-white rounded-lg border border-border-light text-sm"
+                >
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       )}
-    </div>
-  );
 
-  const getCardTitle = () => {
-    if (transactionType === 'transferencia_interna') return 'Transferir';
-    if (transactionType === 'ingreso') return 'Nuevo Ingreso';
-    return 'Nuevo Gasto';
-  };
-
-  return (
-    <GlassCard className="w-full max-w-md mx-auto">
-      <GlassCardHeader>
-        <GlassCardTitle className="text-center text-lg">
-          {getCardTitle()}
-        </GlassCardTitle>
-      </GlassCardHeader>
-      <GlassCardContent>
-        {renderStepIndicator()}
-        
-        {step === 'amount' && renderAmountStep()}
-        {step === 'category' && renderCategoryStep()}
-        {step === 'subcategory' && renderSubcategoryStep()}
-        {step === 'details' && renderDetailsStep()}
-
-        {error && (
-          <p className="text-sm text-red-500 text-center mt-4">{error}</p>
-        )}
-
-        {/* Navigation */}
-        <div className="flex gap-2 mt-6">
-          {step === 'amount' ? null : (
-            <Button variant="ghost" onClick={goBack} className="flex-1">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Atras
-            </Button>
-          )}
-          
-          {step === 'details' ? (
-            <Button 
-              onClick={handleSubmit}
-              isLoading={isLoading}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              <Check className="h-4 w-4 mr-1" />
-              Guardar
-            </Button>
-          ) : (
-            <Button 
-              onClick={goNext} 
-              disabled={!canProceed()}
-              className="flex-1"
-            >
-              Siguiente
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          )}
+      {/* Error message */}
+      {error && (
+        <div className="p-3 bg-danger/10 text-danger rounded-xl text-sm">
+          {error}
         </div>
-      </GlassCardContent>
-    </GlassCard>
+      )}
+
+      {/* Submit Button */}
+      <Button
+        onClick={handleSubmit}
+        disabled={!amount || isLoading}
+        className="w-full py-4 text-lg font-bold bg-[var(--accent-color,#8B5CF6)]"
+      >
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <>
+            <Check className="h-5 w-5 mr-2" />
+            Guardar {transactionType === 'gasto' ? 'Gasto' : ''}
+            {transactionType === 'ingreso' ? 'Ingreso' : ''}
+            {transactionType === 'transferencia_interna' ? 'Transferencia' : ''}
+          </>
+        )}
+      </Button>
+    </div>
   );
 }

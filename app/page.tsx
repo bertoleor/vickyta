@@ -136,7 +136,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Balance Card */}
-      <GlassCard variant="elevated" className="relative overflow-hidden border-none shadow-soft-lg bg-primary text-white">
+      <GlassCard variant="elevated" className="relative overflow-hidden border-none shadow-soft-lg bg-[var(--accent-color,#8B5CF6)]">
         <GlassCardContent>
           <div className="flex items-center gap-2 mb-4 opacity-90">
             <div className="p-2 rounded-xl bg-white/20">
@@ -175,6 +175,22 @@ export default async function DashboardPage() {
         </GlassCardContent>
       </GlassCard>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-3 gap-3">
+        <a href="/gastos" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-danger text-white hover:opacity-90 transition-opacity">
+          <TrendingDown className="h-6 w-6 mb-1" />
+          <span className="text-sm font-semibold">Gasto</span>
+        </a>
+        <a href="/ingresos" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-500 text-white hover:opacity-90 transition-opacity">
+          <TrendingUp className="h-6 w-6 mb-1" />
+          <span className="text-sm font-semibold">Ingreso</span>
+        </a>
+        <a href="/banco" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-blue-500 text-white hover:opacity-90 transition-opacity">
+          <Wallet className="h-6 w-6 mb-1" />
+          <span className="text-sm font-semibold">Cuentas</span>
+        </a>
+      </div>
+
       {/* Charts Section */}
       {pieChartData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -198,7 +214,7 @@ export default async function DashboardPage() {
                 <div className="p-1.5 rounded-lg bg-background-secondary">
                   <TrendingDown className="h-4 w-4 text-primary" />
                 </div>
-                Esta Semana
+                Gastos Semanales
               </GlassCardTitle>
             </GlassCardHeader>
             <GlassCardContent>
@@ -261,7 +277,7 @@ export default async function DashboardPage() {
               <div className="p-1.5 rounded-lg bg-background-secondary">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
-              Esta Semana
+              Resumen por Categoría
             </GlassCardTitle>
           </GlassCardHeader>
           <GlassCardContent className="space-y-4">
@@ -273,8 +289,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${item.color} rounded-full transition-all duration-500`}
-                    style={{ width: `${item.percentage}%` } as React.CSSProperties}
+                    className={`h-full ${item.color} rounded-full transition-all duration-500 wp-${Math.min(100, Math.max(0, Math.round(item.percentage)))}`}
                   />
                 </div>
               </div>
@@ -299,11 +314,11 @@ export default async function DashboardPage() {
 // Helper function to get category colors
 function getCategoryColor(categoryName: string): string {
   const colors: Record<string, string> = {
-    'Súper & Alimentos': 'bg-primary-400',
-    'Trabajo & Transporte': 'bg-secondary-400',
-    'Casa & Servicios': 'bg-accent-400',
-    'Extras & Hormiga': 'bg-primary-300',
-    'Deudas & Bancos': 'bg-secondary-300',
+    'Súper & Alimentos': 'bg-purple-400',
+    'Trabajo & Transporte': 'bg-blue-400',
+    'Casa & Servicios': 'bg-orange-400',
+    'Extras & Hormiga': 'bg-pink-400',
+    'Deudas & Bancos': 'bg-red-400',
   };
   
   // Check for partial matches
@@ -313,5 +328,5 @@ function getCategoryColor(categoryName: string): string {
     }
   }
   
-  return 'bg-primary-300';
+  return 'bg-gray-400';
 }

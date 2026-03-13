@@ -98,11 +98,6 @@ export default function PresupuestosPage() {
     return "bg-primary";
   };
 
-  const getProgressWidth = (spent: number, budget: number) => {
-    const percentage = Math.min((spent / budget) * 100, 100);
-    return `${percentage}%`;
-  };
-
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
@@ -143,10 +138,11 @@ export default function PresupuestosPage() {
           </GlassCardHeader>
           <GlassCardContent className="space-y-4">
             <div>
-              <label className="block text-sm text-text-secondary mb-1">
+              <label htmlFor="new-amount-input" className="block text-sm text-text-secondary mb-1">
                 Monto
               </label>
               <Input
+                id="new-amount-input"
                 type="number"
                 placeholder="Ej: 50000"
                 value={newAmount}
@@ -237,7 +233,9 @@ export default function PresupuestosPage() {
                         {budget.category?.name || "Presupuesto Total"}
                       </p>
                       <p className="text-xs text-text-muted capitalize">
-                        {budget.period === "weekly" ? "Semanal" : budget.period === "monthly" ? "Mensual" : "Anual"}
+                        {budget.period === "weekly" && "Semanal"}
+                        {budget.period === "monthly" && "Mensual"}
+                        {budget.period === "yearly" && "Anual"}
                       </p>
                     </div>
                     <div className="text-right">
@@ -250,11 +248,9 @@ export default function PresupuestosPage() {
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="h-3 bg-neutral-100 rounded-full overflow-hidden mb-3">
                     <div 
-                      className={`h-full rounded-full transition-all ${getProgressColor(spent, budget.amount)}`}
-                      style={{ width: getProgressWidth(spent, budget.amount) }}
+                      className={`h-full rounded-full transition-all ${getProgressColor(spent, budget.amount)} wp-${Math.min(100, Math.max(0, Math.round(percentage)))}`}
                     />
                   </div>
 
