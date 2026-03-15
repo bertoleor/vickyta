@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowRight, 
   Check, 
@@ -33,7 +34,7 @@ const tourSteps: TourStep[] = [
   {
     id: "income",
     title: "Registra tus Ingresos",
-    description: "Agrega tusSalary u otros ingresos regulares para ver tubalance real.",
+    description: "Agrega tus ingresos regulares para ver tu balance real.",
     icon: <TrendingUp className="h-8 w-8" />,
     actionText: "Agregar Ingresos",
     actionUrl: "/ingresos",
@@ -49,7 +50,7 @@ const tourSteps: TourStep[] = [
   {
     id: "notifications",
     title: "Activa Notificaciones",
-    description: "Recibirecordatorios de vencimiento de tarjetas y alertas de gastos.",
+    description: "Recibe recordatorios de vencimiento de tarjetas y alertas de gastos.",
     icon: <Bell className="h-8 w-8" />,
     actionText: "Configurar",
     actionUrl: "/configuracion/notificaciones",
@@ -62,12 +63,11 @@ interface WelcomeTourProps {
 
 /**
  * Welcome Tour Component
- * Guides new users through initial app setup
+ * Guides new users through initial app setup with smooth transitions
  */
 export function WelcomeTour({ onComplete }: WelcomeTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
-  const [isClosing, setIsClosing] = useState(false);
 
   const step = tourSteps[currentStep];
   const progress = ((currentStep + 1) / tourSteps.length) * 100;
@@ -81,16 +81,13 @@ export function WelcomeTour({ onComplete }: WelcomeTourProps) {
   };
 
   const handleClose = () => {
-    setIsClosing(true);
-    // Save that tour was completed
+    setIsVisible(false);
     localStorage.setItem("welcome_tour_completed", "true");
-    setTimeout(() => {
-      setIsVisible(false);
-      onComplete();
-    }, 300);
+    onComplete();
   };
 
   const handleSkip = () => {
+    setIsVisible(false);
     localStorage.setItem("welcome_tour_completed", "true");
     onComplete();
   };
@@ -98,82 +95,110 @@ export function WelcomeTour({ onComplete }: WelcomeTourProps) {
   if (!isVisible) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
-      <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden animate-slide-up">
-        <div className="h-1 bg-neutral-100">
-          <div 
-            className={`h-full bg-primary transition-all duration-300 wp-${Math.min(100, Math.max(0, Math.round(progress)))}`}
-          />
-        </div>
-
-        {/* Close button */}
-        <button
-          onClick={handleSkip}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors"
-          aria-label="Omitir tour de bienvenida"
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      >
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden relative"
         >
-          <X className="h-5 w-5 text-text-muted" />
-        </button>
-
-        {/* Content */}
-        <div className="p-8">
-          {/* Icon */}
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
-            {step.icon}
+          <div className="h-1.5 bg-neutral-100">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              className="h-full bg-primary"
+            />
           </div>
 
-          {/* Title */}
-          <h2 className="text-xl font-bold text-text-primary text-center mb-2">
-            {step.title}
-          </h2>
+          {/* Close button */}
+          <button
+            onClick={handleSkip}
+            className="absolute top-6 right-6 p-2 rounded-full hover:bg-neutral-100 transition-colors z-20"
+            aria-label="Omitir tour de bienvenida"
+          >
+            <X className="h-5 w-5 text-text-muted" />
+          </button>
 
-          {/* Description */}
-          <p className="text-text-secondary text-center text-sm mb-8">
-            {step.description}
-          </p>
+          {/* Content */}
+          <div className="p-8 pt-10">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="text-center"
+              >
+                {/* Icon */}
+                <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-8 shadow-inner">
+                  {step.icon}
+                </div>
 
-          {/* Step indicator */}
-          <div className="flex justify-center gap-2 mb-6">
-            {tourSteps.map((step) => (
-              <div
-                key={step.id}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  tourSteps.indexOf(step) <= currentStep ? 'bg-primary' : 'bg-neutral-200'
-                }`}
-              />
-            ))}
+                {/* Title */}
+                <h2 className="text-2xl font-black text-text-primary mb-3">
+                  {step.title}
+                </h2>
+
+                {/* Description */}
+                <p className="text-text-secondary font-medium leading-relaxed mb-8">
+                  {step.description}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Step indicator */}
+            <div className="flex justify-center gap-2.5 mb-8">
+              {tourSteps.map((_, idx) => (
+                <motion.div
+                  key={idx}
+                  animate={{ 
+                    width: idx === currentStep ? 24 : 8,
+                    backgroundColor: idx <= currentStep ? "var(--accent-color, #8B5CF6)" : "#E5E5EA"
+                  }}
+                  className="h-2 rounded-full"
+                />
+              ))}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                onClick={handleSkip}
+                className="flex-1 h-12 rounded-2xl font-bold"
+              >
+                Omitir
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                className="flex-1 h-12 rounded-2xl font-bold flex items-center justify-center gap-2"
+              >
+                {currentStep < tourSteps.length - 1 ? (
+                  <>
+                    Siguiente
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Finalizar
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button
-              variant="ghost"
-              onClick={handleSkip}
-              className="flex-1"
-            >
-              Omitir
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleNext}
-              className="flex-1 flex items-center justify-center gap-2"
-            >
-              {currentStep < tourSteps.length - 1 ? (
-                <>
-                  Siguiente
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4" />
-                  Finalizar
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

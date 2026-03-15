@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { login } from "@/lib/auth/actions";
 import { toast, Toaster } from "sonner";
 import { WelcomeScreen } from "@/components/ui/WelcomeScreen";
+import { useRouter } from "next/navigation";
 
 /**
  * Login Page - Minimalist Design
@@ -16,7 +17,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -41,7 +42,7 @@ export default function LoginPage() {
 
   const handleWelcomeComplete = () => {
     setShowWelcome(false);
-    globalThis.location.href = "/";
+    router.push("/");
   };
 
   if (showWelcome) {

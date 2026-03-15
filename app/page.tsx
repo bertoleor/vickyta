@@ -133,46 +133,45 @@ export default async function DashboardPage() {
       {/* Header - Greeting */}
       <div className="text-center pt-4 pb-2">
         <Greeting name={displayName} />
-        <p className="text-[10px] font-bold text-primary/50 uppercase tracking-widest mb-1">Versión Minimalista v2</p>
         <p className="text-text-secondary mt-1 text-sm capitalize font-medium">
           {formattedDate}
         </p>
       </div>
 
-      {/* Balance Card - Refined Minimal Design */}
-      <GlassCard variant="elevated" className="relative overflow-hidden border border-neutral-100/50 shadow-soft-lg bg-white">
+      {/* Balance Card - Refined Minimal Design with Brand Color */}
+      <GlassCard variant="elevated" className="relative overflow-hidden border-none shadow-soft-lg bg-[var(--accent-color,#8B5CF6)] text-white">
         <GlassCardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Wallet className="h-5 w-5 text-primary" />
+          <div className="flex items-center gap-2 mb-4 opacity-90">
+            <div className="p-2 rounded-xl bg-white/20">
+              <Wallet className="h-5 w-5 text-white" />
             </div>
-            <span className="text-sm font-semibold text-text-secondary">Saldo Disponible</span>
+            <span className="text-sm font-bold">Saldo Disponible</span>
           </div>
           
           <div className="flex items-baseline gap-2 mb-8">
-            <span className="text-5xl font-bold tracking-tight text-text-primary">
+            <span className="text-5xl font-extrabold tracking-tight">
               {formatCurrency(totalBalance)}
             </span>
           </div>
 
-          {/* Income/Expense mini cards - Elegant & Simple */}
+          {/* Income/Expense mini cards - Elegant & Simple on Primary Background */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100/50">
-              <div className="p-2 rounded-lg bg-emerald-100/50">
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/10 border border-white/5">
+              <div className="p-2 rounded-lg bg-white/20">
+                <TrendingUp className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-bold">Ingresos</p>
-                <p className="text-sm font-bold text-emerald-600">+{formatCurrency(totalIncome)}</p>
+                <p className="text-[10px] uppercase tracking-wider text-white/70 font-bold">Ingresos</p>
+                <p className="text-sm font-bold text-white">+{formatCurrency(totalIncome)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100/50">
-              <div className="p-2 rounded-lg bg-amber-100/50">
-                <TrendingDown className="h-4 w-4 text-amber-600" />
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/10 border border-white/5">
+              <div className="p-2 rounded-lg bg-white/20">
+                <TrendingDown className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-bold">Gastos</p>
-                <p className="text-sm font-bold text-amber-600">-{formatCurrency(totalExpenses)}</p>
+                <p className="text-[10px] uppercase tracking-wider text-white/70 font-bold">Gastos</p>
+                <p className="text-sm font-bold text-white">-{formatCurrency(totalExpenses)}</p>
               </div>
             </div>
           </div>
