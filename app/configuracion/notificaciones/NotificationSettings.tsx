@@ -284,7 +284,7 @@ export function NotificationSettings() {
         </p>
         <ol className="text-xs text-amber-700 mt-2 space-y-1 list-decimal list-inside">
           <li>Ingresa tu usuario de Telegram</li>
-          <li>Haz clic en "Vincular"</li>
+          <li>Haz clic en &quot;Vincular&quot;</li>
           <li>Ve a Telegram y escribe <code>/vincular</code></li>
           <li>El bot te enviará un código</li>
           <li>Regresa aquí e ingresa el código</li>
