@@ -76,7 +76,7 @@ export async function login(formData: FormData): Promise<{ error?: string } | vo
  * Sign out server action
  * Clears the session and redirects to login
  */
-export async function signOut(): Promise<void> {
+export async function signOut(_formData?: FormData): Promise<void> {
   const supabase = await createClient();
   
   await supabase.auth.signOut();

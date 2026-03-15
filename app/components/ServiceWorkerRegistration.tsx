@@ -2,31 +2,32 @@
 
 import { useEffect } from "react";
 
+const onStateChange = (newWorker: ServiceWorker) => {
+  if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+    console.log("Nueva versión disponible");
+  }
+};
+
+const onUpdateFound = (registration: ServiceWorkerRegistration) => {
+  const newWorker = registration.installing;
+  if (newWorker) {
+    newWorker.addEventListener("statechange", () => onStateChange(newWorker));
+  }
+};
+
 export function ServiceWorkerRegistration() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("Service Worker registrado:", registration.scope);
+    if (!("serviceWorker" in navigator)) return;
 
-          // Check for updates
-          registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  // New version available
-                  console.log("Nueva versión disponible");
-                }
-              });
-            }
-          });
-        })
-        .catch((error) => {
-          console.error("Error registrando Service Worker:", error);
-        });
-    }
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        console.log("Service Worker registrado:", registration.scope);
+        registration.addEventListener("updatefound", () => onUpdateFound(registration));
+      })
+      .catch((error) => {
+        console.error("Error registrando Service Worker:", error);
+      });
   }, []);
 
   return null;

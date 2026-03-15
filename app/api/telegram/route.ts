@@ -59,7 +59,7 @@ interface TelegramUpdate {
 interface TelegramSession {
   id?: string;
   chat_id: number;
-  step: 'START' | 'CATEGORY' | 'METHOD' | 'BANK' | 'INSTALLMENTS' | 'COMPLETE';
+  step: 'START' | 'CATEGORY' | 'METHOD' | 'BANK' | 'INSTALLMENTS' | 'COMPLETE' | 'VERIFY';
   amount?: number;
   description?: string;
   category_id?: string;
@@ -67,6 +67,9 @@ interface TelegramSession {
   method?: string;
   bank?: string;
   installments?: number;
+  // Verification fields
+  verification_code?: string;
+  verification_expires_at?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -231,6 +234,77 @@ async function clearSession(chatId: number): Promise<void> {
 }
 
 // ============================================
+// VERIFICATION HELPERS
+// ============================================
+
+/**
+ * Generate a random 4-digit verification code
+ */
+function generateVerificationCode(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+/**
+ * Create or update verification code for a chat
+ */
+async function createVerificationCode(chatId: number): Promise<string | null> {
+  const code = generateVerificationCode();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+
+  const { error } = await supabase
+    .from('telegram_sessions')
+    .upsert({
+      chat_id: chatId,
+      step: 'VERIFY',
+      verification_code: code,
+      verification_expires_at: expiresAt,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'chat_id' });
+
+  if (error) {
+    console.error('Error creating verification code:', error);
+    return null;
+  }
+
+  return code;
+}
+
+/**
+ * Verify a code and return the chat_id if valid
+ */
+async function verifyCode(code: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from('telegram_sessions')
+    .select('chat_id, verification_expires_at')
+    .eq('verification_code', code)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  // Check if code has expired
+  if (new Date(data.verification_expires_at) < new Date()) {
+    console.log('Verification code expired');
+    return null;
+  }
+
+  return data.chat_id as number;
+}
+
+/**
+ * Send verification code to user's Telegram
+ */
+async function sendVerificationCode(chatId: number, code: string): Promise<void> {
+  await sendTelegramMessage(
+    chatId,
+    `<b>Codigo de verificacion:</b> ${code}\n\n` +
+    `Ingresa este codigo en la app de finanzas para vincular tu cuenta.\n` +
+    `El codigo expira en 10 minutos.`
+  );
+}
+
+// ============================================
 // ACCOUNT HELPERS
 // ============================================
 
@@ -358,34 +432,28 @@ function parseExpenseMessage(text: string): { amount: number; description: strin
 
 function getCategoryKeyboard(): object {
   return {
-    inline_keyboard: [
-      ...MACRO_CATEGORIES.map(cat => [{
-        text: `${cat.emoji} ${cat.name}`,
-        callback_data: `cat:${cat.id}`,
-      }]),
-    ],
+    inline_keyboard: MACRO_CATEGORIES.map(cat => [{
+      text: `${cat.emoji} ${cat.name}`,
+      callback_data: `cat:${cat.id}`,
+    }]),
   };
 }
 
 function getMethodKeyboard(): object {
   return {
-    inline_keyboard: [
-      ...PAYMENT_METHODS.map(method => [{
-        text: `${method.emoji} ${method.name}`,
-        callback_data: `method:${method.id}`,
-      }]),
-    ],
+    inline_keyboard: PAYMENT_METHODS.map(method => [{
+      text: `${method.emoji} ${method.name}`,
+      callback_data: `method:${method.id}`,
+    }]),
   };
 }
 
 function getBankKeyboard(): object {
   return {
-    inline_keyboard: [
-      ...BANKS.map(bank => [{
-        text: bank.name,
-        callback_data: `bank:${bank.id}`,
-      }]),
-    ],
+    inline_keyboard: BANKS.map(bank => [{
+      text: bank.name,
+      callback_data: `bank:${bank.id}`,
+    }]),
   };
 }
 
@@ -418,35 +486,26 @@ function getDeleteKeyboard(transactionId: string): object {
 async function handleStartCommand(chatId: number, firstName?: string, username?: string): Promise<void> {
   await clearSession(chatId);
 
-  // Try to auto-link the user (for personal app)
+  // Check if user is already linked
   const existingUserId = await getUserIdByTelegramId(chatId);
   
-  // If user not linked, try to get current auth user
-  if (!existingUserId) {
-    const { data: authData } = await supabase.auth.getUser();
-    if (authData?.user) {
-      // Auto-link this Telegram user to the current authenticated user
-      await supabase
-        .from('telegram_users')
-        .upsert({
-          telegram_id: chatId,
-          user_id: authData.user.id,
-          first_name: firstName,
-          username: username,
-        }, { onConflict: 'telegram_id' });
-    }
+  let welcomeMessage = `<b>Hola${firstName ? ' ' + firstName : ''}!</b>\n\n`;
+  
+  if (existingUserId) {
+    welcomeMessage += `Tu cuenta esta vinculada. \n\n`;
+  } else {
+    welcomeMessage += `Usa <code>/vincular</code> para conectar tu cuenta. \n\n`;
   }
+  
+  welcomeMessage += `<b>Comandos:</b>\n` +
+    `<code>/hoy</code> - Gastos del dia\n` +
+    `<code>/saldos</code> - Ver balances\n` +
+    `<code>/vincular</code> - Vincular cuenta\n` +
+    `<code>/ayuda</code> - Ver ayuda\n\n` +
+    `<b>Registrar gasto:</b>\n` +
+    `<code>4500 verduleria</code>`;
 
-  await sendTelegramMessage(
-    chatId,
-    `<b>Hola${firstName ? ' ' + firstName : ''}!</b>\n\n` +
-    `Para registrar un gasto, escribe el monto y descripcion:\n` +
-    `<code>4500 verduleria</code>\n\n` +
-    `Comandos disponibles:\n` +
-    `/hoy - Ver gastos del dia\n` +
-    `/saldos - Ver balances\n` +
-    `/cancelar - Cancelar operacion actual`
-  );
+  await sendTelegramMessage(chatId, welcomeMessage);
 }
 
 async function handleHoyCommand(chatId: number): Promise<void> {
@@ -519,6 +578,58 @@ async function handleSaldosCommand(chatId: number): Promise<void> {
 async function handleCancelarCommand(chatId: number): Promise<void> {
   await clearSession(chatId);
   await sendTelegramMessage(chatId, "Operacion cancelada. Escribe un monto y descripcion para comenzar de nuevo.");
+}
+
+/**
+ * Handle /vincular command - Start account linking process
+ */
+async function handleVincularCommand(chatId: number): Promise<void> {
+  // Check if already linked
+  const existingUserId = await getUserIdByTelegramId(chatId);
+  
+  if (existingUserId) {
+    await sendTelegramMessage(
+      chatId,
+      "Tu cuenta de Telegram ya esta vinculada.\n\n" +
+      "Si deseas desvincular, ve a Configuracion > Notificaciones en la app."
+    );
+    return;
+  }
+
+  // Generate verification code
+  const code = await createVerificationCode(chatId);
+  
+  if (!code) {
+    await sendTelegramMessage(chatId, "Error al generar codigo. Intenta de nuevo.");
+    return;
+  }
+
+  // Send verification code
+  await sendVerificationCode(chatId, code);
+  
+  await sendTelegramMessage(
+    chatId,
+    "Ahora ve a la app de finanzas > Configuracion > Notificaciones > Vincula tu cuenta de Telegram.\n\n" +
+    "Ingresa el codigo de 4 digitos que te envie arriba."
+  );
+}
+
+/**
+ * Handle /ayuda command - Show help
+ */
+async function handleAyudaCommand(chatId: number): Promise<void> {
+  const message = `<b>Comandos disponibles:</b>\n\n` +
+    `<code>/start</code> - Iniciar y ver opciones\n` +
+    `<code>/hoy</code> - Ver gastos de hoy\n` +
+    `<code>/saldos</code> - Ver balances de cuentas\n` +
+    `<code>/vincular</code> - Vincular cuenta\n` +
+    `<code>/ayuda</code> - Ver este menu\n` +
+    `<code>/cancelar</code> - Cancelar operacion\n\n` +
+    `<b>Registrar gasto:</b>\n` +
+    `Escribe el monto y descripcion:\n` +
+    `<code>4500 verduleria</code>`;
+
+  await sendTelegramMessage(chatId, message);
 }
 
 async function handleNewExpense(chatId: number, text: string): Promise<void> {
@@ -763,6 +874,12 @@ export async function POST(request: NextRequest) {
           break;
         case '/cancelar':
           await handleCancelarCommand(chatId);
+          break;
+        case '/vincular':
+          await handleVincularCommand(chatId);
+          break;
+        case '/ayuda':
+          await handleAyudaCommand(chatId);
           break;
         default:
           await sendTelegramMessage(chatId, "Comando no reconocido. Usa /start para ver los comandos disponibles.");

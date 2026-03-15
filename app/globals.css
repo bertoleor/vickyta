@@ -3,14 +3,18 @@
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+/* stylelint-disable */
+/* @config "../tailwind.config.ts"; */
 @import "./dynamic-utilities.css";
-/* @css-ignore-line */
-/* stylelint-disable-next-line */
-@config "../tailwind.config.ts";
 
 /* CSS Variables for Theme and Accent Color */
 :root {
   --accent-color: #8B5CF6; /* Default purple */
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --text-primary: #000000;
+  --text-secondary: #3C3C43;
+  --text-muted: #AEAEB2;
 }
 
 .dark {
@@ -23,13 +27,13 @@
 
 /* Base styles */
 body {
-  @apply text-text-primary antialiased bg-background;
+  @apply text-text-primary antialiased bg-background; /* @css-ignore-line */
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 /* Focus styles for accessibility */
 *:focus-visible {
-  @apply outline-2 outline-primary outline-offset-2;
+  @apply outline-2 outline-primary outline-offset-2; /* @css-ignore-line */
 }
 
 /* Custom scrollbar - Discret and subtle */
@@ -43,7 +47,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-200 rounded-full hover:bg-neutral-300 transition-colors;
+  @apply bg-neutral-200 rounded-full hover:bg-neutral-300 transition-colors; /* @css-ignore-line */
 }
 
 /* ===========================================
@@ -53,36 +57,36 @@ body {
 @layer components {
   /* Clean iOS card */
   .card-ios {
-    @apply bg-white border border-neutral-100 rounded-2xl shadow-soft transition-all duration-200;
+    @apply bg-white border border-neutral-100 rounded-2xl shadow-soft transition-all duration-200; /* @css-ignore-line */
   }
 
   .card-ios-elevated {
-    @apply bg-white border border-neutral-100 rounded-2xl shadow-soft-lg transition-all duration-200;
+    @apply bg-white border border-neutral-100 rounded-2xl shadow-soft-lg transition-all duration-200; /* @css-ignore-line */
   }
 
   /* iOS Blur Backdrop */
   .blur-ios {
-    @apply bg-white/70 backdrop-blur-md;
+    @apply bg-white/70 backdrop-blur-md; /* @css-ignore-line */
   }
 
   /* Pill button base */
   .btn-pill {
-    @apply rounded-full px-6 py-3 font-medium transition-all duration-200 active:scale-95;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/20;
+    @apply rounded-full px-6 py-3 font-medium transition-all duration-200 active:scale-95; /* @css-ignore-line */
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20; /* @css-ignore-line */
   }
 
   /* iOS-style input */
   .input-ios {
-    @apply w-full h-11 px-4 py-2 text-base bg-neutral-100/50 rounded-xl;
-    @apply border border-transparent;
-    @apply placeholder:text-text-muted;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white focus:border-primary/20;
-    @apply transition-all duration-200;
+    @apply w-full h-11 px-4 py-2 text-base bg-neutral-100/50 rounded-xl; /* @css-ignore-line */
+    @apply border border-transparent; /* @css-ignore-line */
+    @apply placeholder:text-text-muted; /* @css-ignore-line */
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white focus:border-primary/20; /* @css-ignore-line */
+    @apply transition-all duration-200; /* @css-ignore-line */
   }
 
   /* Sidebar backdrop */
   .sidebar-backdrop {
-    @apply bg-black/10 backdrop-blur-sm;
+    @apply bg-black/10 backdrop-blur-sm; /* @css-ignore-line */
   }
 }
 

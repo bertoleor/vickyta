@@ -38,7 +38,6 @@ export default function HistorialPage() {
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -381,13 +380,10 @@ export default function HistorialPage() {
             <GlassCard variant="default">
               <GlassCardContent className="divide-y divide-border-light">
                 {txs.map((item) => (
-                  <div 
+                  <button 
                     key={item.id}
-                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors -mx-2 px-2"
+                    className="w-full flex items-center justify-between py-3 first:pt-0 last:pb-0 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors -mx-2 px-2 text-left"
                     onClick={() => setSelectedTransaction(item)}
-                    onKeyDown={(e) => e.key === 'Enter' && setSelectedTransaction(item)}
-                    role="button"
-                    tabIndex={0}
                   >
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">
@@ -410,7 +406,7 @@ export default function HistorialPage() {
                     <div className={`text-sm font-semibold ${getTransactionColor(item.type)}`}>
                       {item.type === "ingreso" ? "+" : "-"}{formatCurrency(item.amount)}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </GlassCardContent>
             </GlassCard>

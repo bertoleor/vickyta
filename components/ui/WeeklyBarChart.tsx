@@ -3,11 +3,11 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface WeeklyChartProps {
-  data: Array<{
-    day: string;
-    dayName: string;
-    amount: number;
-    type: 'gasto' | 'ingreso';
+  readonly data: ReadonlyArray<{
+    readonly day: string;
+    readonly dayName: string;
+    readonly amount: number;
+    readonly type: 'gasto' | 'ingreso';
   }>;
 }
 
@@ -28,7 +28,7 @@ export function WeeklyBarChart({ data }: WeeklyChartProps) {
   return (
     <div className="h-32">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} barCategoryGap="30%">
+        <BarChart data={data as any[]} barCategoryGap="30%">
           <XAxis 
             dataKey="dayName" 
             axisLine={false}
@@ -51,9 +51,9 @@ export function WeeklyBarChart({ data }: WeeklyChartProps) {
             }}
           />
           <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-            {data.map((entry, index) => (
+            {data.map((entry) => (
               <Cell 
-                key={`cell-${index}`} 
+                key={`cell-${entry.day}`} 
                 fill={entry.type === 'gasto' ? COLORS.gasto : COLORS.ingreso}
               />
             ))}

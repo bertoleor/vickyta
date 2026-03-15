@@ -115,12 +115,9 @@ export function TransactionDetailsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      <button 
+        className="absolute inset-0 w-full h-full bg-black/50 backdrop-blur-sm cursor-default"
         onClick={onClose}
-        onKeyDown={(e) => e.key === 'Escape' && onClose()}
-        role="button"
-        tabIndex={-1}
         aria-label="Cerrar modal"
       />
 

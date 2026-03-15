@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, DollarSign, Calendar } from "lucide-react";
+import { DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { addTransaction } from "@/lib/actions/transactions";
 import { getAccounts } from "@/lib/actions";

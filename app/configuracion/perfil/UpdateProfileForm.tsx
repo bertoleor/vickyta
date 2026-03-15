@@ -20,19 +20,27 @@ export function UpdateProfileForm({ displayName, email }: UpdateProfileFormProps
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (formData: FormData) => {
+  const handleResult = (result: { error?: string }) => {
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    }
+  };
+
+  const handleSubmit = async (formData: FormData) => {
     setError(null);
     setSuccess(false);
     
-    startTransition(async () => {
-      const result = await updateProfile(formData);
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-      }
-    });
+    try {
+      startTransition(() => {
+        updateProfile(formData).then(handleResult);
+      });
+    } catch (e) {
+      console.error("Update profile error:", e);
+      setError("Error inesperado al actualizar el perfil");
+    }
   };
 
   return (
