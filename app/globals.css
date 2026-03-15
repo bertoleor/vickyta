@@ -3,9 +3,17 @@
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
-/* stylelint-disable */
-/* @config "../tailwind.config.ts"; */
+@config "../tailwind.config.ts"; /* @css-ignore-line */
 @import "./dynamic-utilities.css";
+
+@theme {
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-background: var(--background);
+}
+
+/* stylelint-disable */
 
 /* CSS Variables for Theme and Accent Color */
 :root {
