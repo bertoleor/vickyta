@@ -59,7 +59,7 @@ const config: Config = {
         // Status colors
         success: "#34C759", // iOS SystemGreen
         warning: "#FF9500", // iOS SystemOrange
-        danger: "#FF3B30",  // iOS SystemRed
+        danger: "#FF9F0A",  // iOS SystemAmber (Softer than red)
         info: "#5AC8FA",    // iOS SystemTeal
       },
       fontFamily: {

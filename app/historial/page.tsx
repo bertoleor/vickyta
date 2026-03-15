@@ -158,12 +158,6 @@ export default function HistorialPage() {
     return "Gasto";
   };
 
-  const getTransactionColor = (type: string) => {
-    if (type === "ingreso") return "text-green-600";
-    if (type === "transferencia_interna") return "text-blue-600";
-    return "text-red-600";
-  };
-
   // Get category name by ID
   const getCategoryName = (categoryId: string | null) => {
     if (!categoryId) return "Sin categoría";
@@ -403,7 +397,7 @@ export default function HistorialPage() {
                         )}
                       </div>
                     </div>
-                    <div className={`text-sm font-semibold ${getTransactionColor(item.type)}`}>
+                    <div className={`text-sm font-semibold ${item.type === "ingreso" ? "text-emerald-600" : "text-amber-600"}`}>
                       {item.type === "ingreso" ? "+" : "-"}{formatCurrency(item.amount)}
                     </div>
                   </button>

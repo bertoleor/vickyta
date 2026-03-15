@@ -4,6 +4,7 @@ import { Greeting } from "@/components/ui/Greeting";
 import { ExpenseFormCard } from "@/components/ui/ExpenseFormCard";
 import { CategoryPieChart } from "@/components/ui/CategoryPieChart";
 import { WeeklyBarChart } from "@/components/ui/WeeklyBarChart";
+import Link from "next/link";
 import { 
   Wallet, 
   Sparkles, 
@@ -11,7 +12,10 @@ import {
   TrendingUp, 
   ChevronRight,
   MessageCircle,
-  BarChart3
+  BarChart3,
+  ArrowUpRight,
+  ArrowDownLeft,
+  ArrowLeftRight
 } from "lucide-react";
 import { getAccountSummary, ensureDefaultCategories } from "@/lib/actions";
 import { getRecentTransactions, getTransactionSummary } from "@/lib/actions/transactions";
@@ -23,40 +27,39 @@ import { formatCurrency } from "@/lib/constants";
  * Connected to Supabase for real data
  */
 export default async function DashboardPage() {
-  // Get current user
+  // Get current user first
   const user = await getCurrentUser();
+  const userId = user?.id || "";
   const displayName = user?.displayName || "Vicky";
 
-  // Ensure default categories exist (including Ernesto)
-  await ensureDefaultCategories();
-
-  // Get account summary
-  const accountsResult = await getAccountSummary(user?.id || "");
-  const accountSummary = accountsResult.data;
-
-  // Get recent transactions
-  const transactionsResult = await getRecentTransactions(user?.id || "", 5);
-  const recentTransactions = transactionsResult.data || [];
-
-  // Get weekly summary
+  // Today and range calculations
   const today = new Date();
   const weekAgo = new Date(today);
   weekAgo.setDate(weekAgo.getDate() - 7);
-  
-  const summaryResult = await getTransactionSummary(
-    user?.id || "",
-    weekAgo.toISOString().split('T')[0],
-    today.toISOString().split('T')[0]
-  );
-  const summary = summaryResult.data;
+  const startDate = weekAgo.toISOString().split('T')[0];
+  const endDate = today.toISOString().split('T')[0];
 
-  // Get transactions for charts (last 30 days for pie chart)
-  const monthAgo = new Date(today);
-  monthAgo.setDate(monthAgo.getDate() - 30);
-  
-  const monthlyTransactionsResult = await getRecentTransactions(user?.id || "", 100);
+  // Parallel Data Fetching for better performance
+  const [
+    accountsResult,
+    recentTransactionsResult,
+    summaryResult,
+    monthlyTransactionsResult
+  ] = await Promise.all([
+    getAccountSummary(userId),
+    getRecentTransactions(userId, 5),
+    getTransactionSummary(userId, startDate, endDate),
+    getRecentTransactions(userId, 100)
+  ]);
+
+  const accountSummary = accountsResult.data;
+  const recentTransactions = recentTransactionsResult.data || [];
+  const summary = summaryResult.data;
   const allTransactions = monthlyTransactionsResult.data || [];
-  
+
+  // Background check for categories - non-blocking but helpful
+  ensureDefaultCategories().catch(console.error);
+
   // Process data for pie chart - expenses by category
   const expensesByCategory = allTransactions
     .filter(t => t.type === 'gasto')
@@ -116,9 +119,9 @@ export default async function DashboardPage() {
   }));
 
   const getTransactionTypeColor = (type: string) => {
-    if (type === 'ingreso') return 'text-green-600';
-    if (type === 'gasto') return 'text-red-600';
-    return 'text-blue-600';
+    if (type === 'ingreso') return 'text-emerald-600';
+    if (type === 'gasto') return 'text-amber-600'; // Changed from red to amber
+    return 'text-blue-500';
   };
 
   const getTransactionTypeSign = (type: string) => {
@@ -130,74 +133,80 @@ export default async function DashboardPage() {
       {/* Header - Greeting */}
       <div className="text-center pt-4 pb-2">
         <Greeting name={displayName} />
-        <p className="text-text-secondary mt-1 text-sm capitalize">
+        <p className="text-text-secondary mt-1 text-sm capitalize font-medium">
           {formattedDate}
         </p>
       </div>
 
-      {/* Balance Card */}
-      <GlassCard variant="elevated" className="relative overflow-hidden border-none shadow-soft-lg bg-[var(--accent-color,#8B5CF6)]">
-        <GlassCardContent>
-          <div className="flex items-center gap-2 mb-4 opacity-90">
-            <div className="p-2 rounded-xl bg-white/20">
-              <Wallet className="h-5 w-5 text-white" />
+      {/* Balance Card - Refined Minimal Design */}
+      <GlassCard variant="elevated" className="relative overflow-hidden border border-neutral-100/50 shadow-soft-lg bg-white">
+        <GlassCardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <Wallet className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-sm font-medium">Saldo Disponible</span>
+            <span className="text-sm font-semibold text-text-secondary">Saldo Disponible</span>
           </div>
           
-          <div className="flex items-baseline gap-2 mb-6">
-            <span className="text-4xl font-bold tracking-tight">
+          <div className="flex items-baseline gap-2 mb-8">
+            <span className="text-5xl font-bold tracking-tight text-text-primary">
               {formatCurrency(totalBalance)}
             </span>
           </div>
 
-          {/* Income/Expense mini cards */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/15">
-              <div className="p-1.5 rounded-lg bg-white/20">
-                <TrendingUp className="h-4 w-4 text-white" />
+          {/* Income/Expense mini cards - Elegant & Simple */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100/50">
+              <div className="p-2 rounded-lg bg-emerald-100/50">
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
               <div>
-                <p className="text-xs opacity-80 font-medium">Ingresos</p>
-                <p className="text-sm font-semibold">+{formatCurrency(totalIncome)}</p>
+                <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-bold">Ingresos</p>
+                <p className="text-sm font-bold text-emerald-600">+{formatCurrency(totalIncome)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/15">
-              <div className="p-1.5 rounded-lg bg-white/20">
-                <TrendingDown className="h-4 w-4 text-white" />
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100/50">
+              <div className="p-2 rounded-lg bg-amber-100/50">
+                <TrendingDown className="h-4 w-4 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs opacity-80 font-medium">Gastos</p>
-                <p className="text-sm font-semibold">-{formatCurrency(totalExpenses)}</p>
+                <p className="text-[10px] uppercase tracking-wider text-text-tertiary font-bold">Gastos</p>
+                <p className="text-sm font-bold text-amber-600">-{formatCurrency(totalExpenses)}</p>
               </div>
             </div>
           </div>
         </GlassCardContent>
       </GlassCard>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Minimal Grid */}
       <div className="grid grid-cols-3 gap-3">
-        <a href="/gastos" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-danger text-white hover:opacity-90 transition-opacity">
-          <TrendingDown className="h-6 w-6 mb-1" />
-          <span className="text-sm font-semibold">Gasto</span>
-        </a>
-        <a href="/ingresos" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-emerald-500 text-white hover:opacity-90 transition-opacity">
-          <TrendingUp className="h-6 w-6 mb-1" />
-          <span className="text-sm font-semibold">Ingreso</span>
-        </a>
-        <a href="/banco" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-blue-500 text-white hover:opacity-90 transition-opacity">
-          <Wallet className="h-6 w-6 mb-1" />
-          <span className="text-sm font-semibold">Cuentas</span>
-        </a>
+        <Link href="/gastos" className="group flex flex-col items-center justify-center p-5 rounded-3xl bg-white border border-neutral-100 shadow-soft hover:shadow-md transition-all active:scale-95">
+          <div className="p-2.5 rounded-2xl bg-amber-50 group-hover:bg-amber-100 transition-colors mb-2">
+            <ArrowDownLeft className="h-6 w-6 text-amber-600" />
+          </div>
+          <span className="text-xs font-bold text-text-secondary">Gasto</span>
+        </Link>
+        <Link href="/ingresos" className="group flex flex-col items-center justify-center p-5 rounded-3xl bg-white border border-neutral-100 shadow-soft hover:shadow-md transition-all active:scale-95">
+          <div className="p-2.5 rounded-2xl bg-emerald-50 group-hover:bg-emerald-100 transition-colors mb-2">
+            <ArrowUpRight className="h-6 w-6 text-emerald-600" />
+          </div>
+          <span className="text-xs font-bold text-text-secondary">Ingreso</span>
+        </Link>
+        <Link href="/banco" className="group flex flex-col items-center justify-center p-5 rounded-3xl bg-white border border-neutral-100 shadow-soft hover:shadow-md transition-all active:scale-95">
+          <div className="p-2.5 rounded-2xl bg-blue-50 group-hover:bg-blue-100 transition-colors mb-2">
+            <ArrowLeftRight className="h-6 w-6 text-blue-600" />
+          </div>
+          <span className="text-xs font-bold text-text-secondary">Cuentas</span>
+        </Link>
       </div>
 
       {/* Charts Section */}
       {pieChartData.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <GlassCard>
+          <GlassCard className="border border-neutral-100/50">
             <GlassCardHeader>
-              <GlassCardTitle className="flex items-center gap-2 text-base">
-                <div className="p-1.5 rounded-lg bg-background-secondary">
+              <GlassCardTitle className="flex items-center gap-2 text-sm font-bold">
+                <div className="p-1.5 rounded-lg bg-neutral-100">
                   <BarChart3 className="h-4 w-4 text-primary" />
                 </div>
                 Gastos por Categoría
@@ -208,10 +217,10 @@ export default async function DashboardPage() {
             </GlassCardContent>
           </GlassCard>
 
-          <GlassCard>
+          <GlassCard className="border border-neutral-100/50">
             <GlassCardHeader>
-              <GlassCardTitle className="flex items-center gap-2 text-base">
-                <div className="p-1.5 rounded-lg bg-background-secondary">
+              <GlassCardTitle className="flex items-center gap-2 text-sm font-bold">
+                <div className="p-1.5 rounded-lg bg-neutral-100">
                   <TrendingDown className="h-4 w-4 text-primary" />
                 </div>
                 Gastos Semanales
@@ -226,14 +235,14 @@ export default async function DashboardPage() {
 
       {/* Recent Transactions */}
       {recentTransactions.length > 0 && (
-        <GlassCard>
+        <GlassCard className="border border-neutral-100/50">
           <GlassCardHeader>
-            <GlassCardTitle className="flex items-center gap-2 text-base">
-              <div className="p-1.5 rounded-lg bg-background-secondary">
+            <GlassCardTitle className="flex items-center gap-2 text-sm font-bold">
+              <div className="p-1.5 rounded-lg bg-neutral-100">
                 <MessageCircle className="h-4 w-4 text-primary" />
               </div>
               Movimientos Recientes
-              <span className="ml-auto text-xs font-normal text-text-tertiary bg-background-secondary px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-[10px] font-bold text-text-tertiary bg-neutral-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
                 {recentTransactions.length}
               </span>
             </GlassCardTitle>
@@ -242,26 +251,28 @@ export default async function DashboardPage() {
             {recentTransactions.map((tx) => (
               <div 
                 key={tx.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-background-secondary/50 hover:bg-background-secondary transition-colors cursor-pointer group"
+                className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-50/50 hover:bg-neutral-50 transition-colors cursor-pointer group border border-transparent hover:border-neutral-100"
               >
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-text-primary">
+                  <p className="text-sm font-bold text-text-primary">
                     {tx.description || tx.category?.name || "Sin descripción"}
                   </p>
-                  <p className="text-xs text-text-tertiary font-medium">
+                  <p className="text-[11px] text-text-tertiary font-bold uppercase tracking-tight">
                     {formatCurrency(tx.amount)} • {new Date(tx.date).toLocaleDateString('es-AR')}
                   </p>
                 </div>
-                <div className={`text-sm font-bold ${getTransactionTypeColor(tx.type)}`}>
+                <div className={`text-sm font-black ${getTransactionTypeColor(tx.type)}`}>
                   {getTransactionTypeSign(tx.type)}{formatCurrency(tx.amount)}
                 </div>
               </div>
             ))}
             
-            <Button variant="ghost" className="w-full mt-2 text-primary font-semibold hover:bg-primary/5">
-              Ver todos los movimientos
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
+            <Link href="/historial" className="block w-full">
+              <Button variant="ghost" className="w-full mt-2 text-primary font-bold hover:bg-primary/5 rounded-2xl h-12">
+                Ver todos los movimientos
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
           </GlassCardContent>
         </GlassCard>
       )}
@@ -271,10 +282,10 @@ export default async function DashboardPage() {
 
       {/* Weekly Summary */}
       {weeklySummary.length > 0 && (
-        <GlassCard>
+        <GlassCard className="border border-neutral-100/50">
           <GlassCardHeader>
-            <GlassCardTitle className="flex items-center gap-2 text-base">
-              <div className="p-1.5 rounded-lg bg-background-secondary">
+            <GlassCardTitle className="flex items-center gap-2 text-sm font-bold">
+              <div className="p-1.5 rounded-lg bg-neutral-100">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               Resumen por Categoría
@@ -282,14 +293,14 @@ export default async function DashboardPage() {
           </GlassCardHeader>
           <GlassCardContent className="space-y-4">
             {weeklySummary.map((item) => (
-              <div key={item.category} className="space-y-1.5">
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-secondary font-medium">{item.category}</span>
-                  <span className="text-text-tertiary font-bold">{item.percentage}%</span>
+              <div key={item.category} className="space-y-2">
+                <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider">
+                  <span className="text-text-secondary">{item.category}</span>
+                  <span className="text-text-tertiary">{item.percentage}%</span>
                 </div>
-                <div className="h-2 bg-background-secondary rounded-full overflow-hidden">
+                <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${item.color} rounded-full transition-all duration-500 wp-${Math.min(100, Math.max(0, Math.round(item.percentage)))}`}
+                    className={`h-full ${item.color} rounded-full transition-all duration-700 wp-${Math.min(100, Math.max(0, Math.round(item.percentage)))}`}
                   />
                 </div>
               </div>
@@ -300,10 +311,10 @@ export default async function DashboardPage() {
 
       {/* Empty State */}
       {recentTransactions.length === 0 && (
-        <GlassCard className="text-center py-8">
+        <GlassCard className="text-center py-10 border border-neutral-100/50">
           <GlassCardContent>
-            <p className="text-text-secondary font-medium">No hay movimientos registrados aún.</p>
-            <p className="text-text-tertiary text-sm mt-1">Los gastos que registres aparecerán aquí.</p>
+            <p className="text-sm text-text-secondary font-bold">No hay movimientos registrados aún.</p>
+            <p className="text-xs text-text-tertiary mt-1">Los gastos que registres aparecerán aquí.</p>
           </GlassCardContent>
         </GlassCard>
       )}
