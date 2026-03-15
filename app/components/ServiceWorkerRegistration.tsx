@@ -17,6 +17,7 @@ const onUpdateFound = (registration: ServiceWorkerRegistration) => {
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
+    /* Temporarily disabled to force hard refresh
     if (!("serviceWorker" in navigator)) return;
 
     navigator.serviceWorker
@@ -28,6 +29,7 @@ export function ServiceWorkerRegistration() {
       .catch((error) => {
         console.error("Error registrando Service Worker:", error);
       });
+    */
   }, []);
 
   return null;

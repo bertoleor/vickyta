@@ -133,6 +133,7 @@ export default async function DashboardPage() {
       {/* Header - Greeting */}
       <div className="text-center pt-4 pb-2">
         <Greeting name={displayName} />
+        <p className="text-[10px] font-bold text-primary/50 uppercase tracking-widest mb-1">Versión Minimalista v2</p>
         <p className="text-text-secondary mt-1 text-sm capitalize font-medium">
           {formattedDate}
         </p>
