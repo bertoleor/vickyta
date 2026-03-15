@@ -42,12 +42,12 @@ export function ServiceWorkerRegistration() {
           registration.update();
         };
 
-        window.addEventListener("focus", checkUpdate);
+        globalThis.addEventListener("focus", checkUpdate);
         
         registration.addEventListener("updatefound", () => onUpdateFound(registration));
 
         return () => {
-          window.removeEventListener("focus", checkUpdate);
+          globalThis.removeEventListener("focus", checkUpdate);
         };
       })
       .catch((error) => {

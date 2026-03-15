@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: any) => {
