@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Check, ExternalLink, Loader2, Shield, MessageCircle } from "lucide-react";
+import { Check, Loader2, Shield, MessageCircle } from "lucide-react";
 import { getUserPreferences } from "@/lib/actions/preferences";
 import { toast } from "sonner";
 
-type VerificationStep = 'idle' | 'enter_username' | 'waiting_code' | 'verifying';
+type VerificationStep = 'idle' | 'enter_username' | 'waiting_code';
 
 export function NotificationSettings() {
   const [telegramUsername, setTelegramUsername] = useState("");
@@ -17,7 +17,6 @@ export function NotificationSettings() {
   const [chatId, setChatId] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<VerificationStep>('enter_username');
-  const [pendingUsername, setPendingUsername] = useState("");
 
   // Load preferences on mount
   useEffect(() => {
@@ -26,9 +25,9 @@ export function NotificationSettings() {
       try {
         const result = await getUserPreferences();
         if (result.success && result.data) {
-          if (result.data.telegram_chat_id) {
+          if (result.data.telegram_chat_id && result.data.telegram_notifications_enabled) {
             setChatId(result.data.telegram_chat_id);
-            setIsLinked(result.data.telegram_notifications_enabled);
+            setIsLinked(true);
             setTelegramUsername("vinculado");
             setStep('idle');
           }
@@ -40,18 +39,30 @@ export function NotificationSettings() {
     loadPreferences();
   }, []);
 
-  // Step 1: User enters username and starts linking
+  // Step 1: send username -> API finds the chat via telegram_users and sends a 6-digit code
   const handleStartLinking = async () => {
     if (!telegramUsername || telegramUsername === "vinculado") return;
-    
+
     setIsLoading(true);
-    setPendingUsername(telegramUsername);
-    
+
     try {
-      // Save the username temporarily
-      // The actual linking will happen after verification
-      setStep('waiting_code');
-      toast.info("Ve a Telegram y escribe /vincular para continuar");
+      const response = await fetch('/api/telegram/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'request',
+          username: telegramUsername,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStep('waiting_code');
+        toast.success("Código enviado a tu Telegram");
+      } else {
+        toast.error(data.error || "No se pudo enviar el código");
+      }
     } catch (error) {
       console.error("Error starting linking:", error);
       toast.error("Error al iniciar vinculación");
@@ -60,15 +71,14 @@ export function NotificationSettings() {
     }
   };
 
-  // Step 2: User enters the verification code from Telegram
+  // Step 2: verify the 6-digit code received in Telegram
   const handleVerifyCode = async () => {
-    if (!verificationCode || verificationCode.length !== 4) {
-      toast.error("Ingresa el código de 4 dígitos");
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast.error("Ingresa el código de 6 dígitos");
       return;
     }
 
     setIsLoading(true);
-    setStep('verifying');
 
     try {
       const response = await fetch('/api/telegram/verify', {
@@ -76,42 +86,41 @@ export function NotificationSettings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'verify',
-          code: verificationCode
-        })
+          code: verificationCode,
+        }),
       });
 
       const data = await response.json();
 
       if (data.success) {
         setIsLinked(true);
-        setChatId(Date.now()); // Will be updated on next load
+        setChatId(typeof data.chatId === 'number' ? data.chatId : null);
         setStep('idle');
+        setVerificationCode("");
         toast.success("¡Cuenta vinculada correctamente!");
       } else {
         toast.error(data.error || "Código incorrecto");
-        setStep('waiting_code');
       }
     } catch (error) {
       console.error("Error verifying code:", error);
       toast.error("Error al verificar código");
-      setStep('waiting_code');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Request a new code (in case user didn't receive one)
+  // Resend the code to the pending chat_id
   const handleRequestNewCode = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/telegram/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'request' })
+        body: JSON.stringify({ action: 'request' }),
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         toast.info("Nuevo código enviado a Telegram");
       } else {
@@ -119,6 +128,7 @@ export function NotificationSettings() {
       }
     } catch (error) {
       console.error("Error requesting code:", error);
+      toast.error("Error al solicitar código");
     } finally {
       setIsLoading(false);
     }
@@ -127,14 +137,26 @@ export function NotificationSettings() {
   const handleUnlink = async () => {
     setIsLoading(true);
     try {
-      // Call API to unlink (would need to implement)
-      setIsLinked(false);
-      setChatId(null);
-      setTelegramUsername("");
-      setStep('enter_username');
-      toast.success("Cuenta desvinculada");
+      const response = await fetch('/api/telegram/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unlink' }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsLinked(false);
+        setChatId(null);
+        setTelegramUsername("");
+        setStep('enter_username');
+        toast.success("Cuenta desvinculada");
+      } else {
+        toast.error(data.error || "Error al desvincular");
+      }
     } catch (error) {
       console.error("Error unlinking:", error);
+      toast.error("Error al desvincular");
     } finally {
       setIsLoading(false);
     }
@@ -164,8 +186,8 @@ export function NotificationSettings() {
         </div>
 
         <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleUnlink}
             disabled={isLoading}
             className="flex-1"
@@ -176,9 +198,9 @@ export function NotificationSettings() {
               "Desvincular"
             )}
           </Button>
-          <a 
-            href="https://t.me/crismorobot" 
-            target="_blank" 
+          <a
+            href="https://t.me/crismorobot"
+            target="_blank"
             rel="noopener noreferrer"
             className="flex-1"
           >
@@ -202,29 +224,29 @@ export function NotificationSettings() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-blue-800">Verificación en progreso</p>
-            <p className="text-xs text-blue-600">Revisa tu Telegram</p>
+            <p className="text-xs text-blue-600">Revisá tu Telegram</p>
           </div>
         </div>
 
         <div className="p-3 rounded-xl bg-background-secondary">
           <p className="text-sm text-text-secondary mb-3">
-            <strong>Paso 1:</strong> Ya enviaste /vincular al bot?
+            Te enviamos un código de 6 dígitos a tu Telegram.
           </p>
           <p className="text-xs text-text-muted mb-3">
-            El bot te envió un código de 4 dígitos. Ingésalo abajo.
+            El código expira en 10 minutos.
           </p>
-          
+
           <div className="flex gap-2">
             <Input
-              placeholder="Código (ej: 1234)"
+              placeholder="Código (ej: 123456)"
               value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               className="flex-1 text-center text-lg tracking-widest font-mono"
-              maxLength={4}
+              maxLength={6}
             />
-            <Button 
+            <Button
               onClick={handleVerifyCode}
-              disabled={verificationCode.length !== 4 || isLoading}
+              disabled={verificationCode.length !== 6 || isLoading}
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificar"}
             </Button>
@@ -232,15 +254,15 @@ export function NotificationSettings() {
         </div>
 
         <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => setStep('enter_username')}
             className="flex-1"
           >
             Cancelar
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleRequestNewCode}
             disabled={isLoading}
             className="flex-1"
@@ -256,7 +278,7 @@ export function NotificationSettings() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-text-secondary">
-        Vincula tu cuenta de Telegram para recibir notificaciones y registrar gastos desde el bot.
+        Vinculá tu cuenta de Telegram para recibir notificaciones y registrar gastos desde el bot.
       </p>
 
       <div className="flex gap-2">
@@ -266,7 +288,7 @@ export function NotificationSettings() {
           onChange={(e) => setTelegramUsername(e.target.value.replace("@", ""))}
           className="flex-1"
         />
-        <Button 
+        <Button
           onClick={handleStartLinking}
           disabled={!telegramUsername || isLoading}
         >
@@ -283,11 +305,10 @@ export function NotificationSettings() {
           <strong>Cómo funciona:</strong>
         </p>
         <ol className="text-xs text-amber-700 mt-2 space-y-1 list-decimal list-inside">
-          <li>Ingresa tu usuario de Telegram</li>
-          <li>Haz clic en &quot;Vincular&quot;</li>
-          <li>Ve a Telegram y escribe <code>/vincular</code></li>
-          <li>El bot te enviará un código</li>
-          <li>Regresa aquí e ingresa el código</li>
+          <li>Abrí Telegram y enviá <code>/start</code> al bot <code>@crismorobot</code></li>
+          <li>Ingresá tu usuario de Telegram acá y tocá &quot;Vincular&quot;</li>
+          <li>El bot te envía un código de 6 dígitos</li>
+          <li>Ingresalo acá y listo</li>
         </ol>
       </div>
     </div>

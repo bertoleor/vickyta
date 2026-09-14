@@ -238,10 +238,10 @@ async function clearSession(chatId: number): Promise<void> {
 // ============================================
 
 /**
- * Generate a random 4-digit verification code
+ * Generate a random 6-digit verification code
  */
 function generateVerificationCode(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 /**
@@ -486,6 +486,16 @@ function getDeleteKeyboard(transactionId: string): object {
 async function handleStartCommand(chatId: number, firstName?: string, username?: string): Promise<void> {
   await clearSession(chatId);
 
+  // Register the Telegram user so the app can find their chat by username
+  await supabase
+    .from('telegram_users')
+    .upsert({
+      telegram_id: chatId,
+      username: username ?? null,
+      first_name: firstName ?? null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'telegram_id' });
+
   // Check if user is already linked
   const existingUserId = await getUserIdByTelegramId(chatId);
   
@@ -610,7 +620,7 @@ async function handleVincularCommand(chatId: number): Promise<void> {
   await sendTelegramMessage(
     chatId,
     "Ahora ve a la app de finanzas > Configuracion > Notificaciones > Vincula tu cuenta de Telegram.\n\n" +
-    "Ingresa el codigo de 4 digitos que te envie arriba."
+    "Ingresa el codigo de 6 digitos que te envie arriba."
   );
 }
 

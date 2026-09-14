@@ -53,48 +53,26 @@ async function sendTelegramMessage(
 // ============================================
 
 function generateVerificationCode(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 async function createVerificationSession(chatId: number): Promise<string | null> {
   const code = generateVerificationCode();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-  // First try to find existing session
-  const { data: existing } = await supabase
+  const { error } = await supabase
     .from('telegram_sessions')
-    .select('id')
-    .eq('chat_id', chatId)
-    .single();
+    .upsert({
+      chat_id: chatId,
+      step: 'VERIFY',
+      verification_code: code,
+      verification_expires_at: expiresAt,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'chat_id' });
 
-  if (existing) {
-    const { error } = await supabase
-      .from('telegram_sessions')
-      .update({
-        verification_code: code,
-        verification_expires_at: expiresAt,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('chat_id', chatId);
-
-    if (error) {
-      console.error('Error updating verification code:', error);
-      return null;
-    }
-  } else {
-    const { error } = await supabase
-      .from('telegram_sessions')
-      .insert({
-        chat_id: chatId,
-        step: 'VERIFY',
-        verification_code: code,
-        verification_expires_at: expiresAt,
-      });
-
-    if (error) {
-      console.error('Error creating verification code:', error);
-      return null;
-    }
+  if (error) {
+    console.error('Error creating verification session:', error);
+    return null;
   }
 
   return code;
@@ -122,56 +100,102 @@ async function verifyCode(code: string): Promise<number | null> {
 // REQUEST HANDLER - Send verification code
 // ============================================
 
-async function handleRequestVerification(userId: string): Promise<{ success: boolean; error?: string; chatId?: number }> {
-  // Get the user's Telegram chat_id from preferences
-  const { data: preferences, error: prefError } = await supabase
-    .from('user_preferences')
-    .select('telegram_chat_id')
-    .eq('user_id', userId)
-    .single();
+async function handleRequestVerification(userId: string, username?: string): Promise<{ success: boolean; error?: string }> {
+  let chatId: number | null = null;
 
-  if (prefError || !preferences?.telegram_chat_id) {
-    return { success: false, error: 'No hay cuenta de Telegram vinculada' };
+  if (username) {
+    // Flow A: user entered their Telegram username in the app.
+    // Find an unlinked telegram_users row captured by the bot webhook.
+    const normalized = username.replace(/^@/, '').trim().toLowerCase();
+    if (!normalized) {
+      return { success: false, error: 'Ingresa tu usuario de Telegram' };
+    }
+
+    const { data: tgUser, error: tgError } = await supabase
+      .from('telegram_users')
+      .select('telegram_id, user_id')
+      .ilike('username', normalized)
+      .maybeSingle();
+
+    if (tgError || !tgUser) {
+      return {
+        success: false,
+        error: 'No encontramos ese usuario. Escribile /start al bot (@crismorobot) en Telegram y volvé a intentar.',
+      };
+    }
+
+    if (tgUser.user_id && tgUser.user_id !== userId) {
+      return { success: false, error: 'Esa cuenta de Telegram ya está vinculada a otro usuario' };
+    }
+
+    chatId = tgUser.telegram_id;
+  } else {
+    // Flow B: resend — use the chat_id already stored in preferences
+    const { data: preferences } = await supabase
+      .from('user_preferences')
+      .select('telegram_chat_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (!preferences?.telegram_chat_id) {
+      return { success: false, error: 'No hay una vinculación en progreso' };
+    }
+
+    chatId = preferences.telegram_chat_id;
   }
 
-  const chatId = preferences.telegram_chat_id;
-
-  // Check if already linked
+  // Check if already linked to THIS user
   const { data: existingLink } = await supabase
     .from('telegram_users')
-    .select('id')
+    .select('user_id')
     .eq('telegram_id', chatId)
-    .single();
+    .maybeSingle();
 
-  if (existingLink) {
+  if (existingLink?.user_id === userId) {
     return { success: false, error: 'Esta cuenta de Telegram ya está vinculada' };
   }
 
-  // Generate verification code
-  const code = await createVerificationSession(chatId);
+  if (chatId === null) {
+    return { success: false, error: 'No se pudo determinar el chat de Telegram' };
+  }
+
+  const targetChatId = chatId;
+
+  // Generate verification code (stored in telegram_sessions, expires in 10 min)
+  const code = await createVerificationSession(targetChatId);
 
   if (!code) {
     return { success: false, error: 'Error al generar código' };
   }
 
+  // Store pending chat_id in preferences so 'resend' works during the flow
+  await supabase
+    .from('user_preferences')
+    .upsert({
+      user_id: userId,
+      telegram_chat_id: targetChatId,
+      telegram_notifications_enabled: false,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+
   // Send code to Telegram
   await sendTelegramMessage(
-    chatId,
+    targetChatId,
     `<b>Codigo de verificacion:</b> ${code}\n\n` +
     `Ingresa este codigo en la app de finanzas para vincular tu cuenta.\n` +
     `El codigo expira en 10 minutos.`
   );
 
-  return { success: true, chatId };
+  return { success: true };
 }
 
 // ============================================
 // VERIFY HANDLER - Verify code and link account
 // ============================================
 
-async function handleVerifyCode(userId: string, code: string): Promise<{ success: boolean; error?: string }> {
-  if (!code || code.length !== 4) {
-    return { success: false, error: 'Código inválido' };
+async function handleVerifyCode(userId: string, code: string): Promise<{ success: boolean; error?: string; chatId?: number }> {
+  if (!code || code.length !== 6) {
+    return { success: false, error: 'El código debe tener 6 dígitos' };
   }
 
   // Verify the code
@@ -194,15 +218,15 @@ async function handleVerifyCode(userId: string, code: string): Promise<{ success
     return { success: false, error: 'Error al vincular cuenta' };
   }
 
-  // Update user preferences to enable notifications
+  // Ensure user_preferences row exists, then enable notifications
   await supabase
     .from('user_preferences')
-    .update({
+    .upsert({
+      user_id: userId,
       telegram_chat_id: chatId,
       telegram_notifications_enabled: true,
       updated_at: new Date().toISOString(),
-    })
-    .eq('user_id', userId);
+    }, { onConflict: 'user_id' });
 
   // Clear the verification session
   await supabase
@@ -218,6 +242,56 @@ async function handleVerifyCode(userId: string, code: string): Promise<{ success
     `- Registrar gastos directamente\n` +
     `- Ver saldos con /saldos\n` +
     `- Ver gastos del dia con /hoy`
+  );
+
+  return { success: true, chatId };
+}
+
+// ============================================
+// UNLINK HANDLER - Remove Telegram link
+// ============================================
+
+async function handleUnlink(userId: string): Promise<{ success: boolean; error?: string }> {
+  const { data: preferences } = await supabase
+    .from('user_preferences')
+    .select('telegram_chat_id')
+    .eq('user_id', userId)
+    .single();
+
+  if (!preferences?.telegram_chat_id) {
+    return { success: false, error: 'No hay cuenta de Telegram vinculada' };
+  }
+
+  const chatId = preferences.telegram_chat_id;
+
+  const { error: unlinkError } = await supabase
+    .from('telegram_users')
+    .update({ user_id: null })
+    .eq('telegram_id', chatId)
+    .eq('user_id', userId);
+
+  if (unlinkError) {
+    console.error('Error unlinking Telegram account:', unlinkError);
+    return { success: false, error: 'Error al desvincular cuenta' };
+  }
+
+  await supabase
+    .from('user_preferences')
+    .update({
+      telegram_chat_id: null,
+      telegram_notifications_enabled: false,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId);
+
+  await supabase
+    .from('telegram_sessions')
+    .delete()
+    .eq('chat_id', chatId);
+
+  await sendTelegramMessage(
+    chatId,
+    'Tu cuenta de Telegram fue desvinculada de la app de finanzas.'
   );
 
   return { success: true };
@@ -238,7 +312,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, code } = body;
+    const { action, code, username } = body;
 
     if (!action) {
       return NextResponse.json({ error: 'Acción requerida' }, { status: 400 });
@@ -246,13 +320,13 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'request': {
-        const result = await handleRequestVerification(user.id);
+        const result = await handleRequestVerification(user.id, username);
         if (!result.success) {
           return NextResponse.json({ error: result.error }, { status: 400 });
         }
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Código enviado a tu Telegram' 
+        return NextResponse.json({
+          success: true,
+          message: 'Código enviado a tu Telegram'
         });
       }
 
@@ -261,9 +335,21 @@ export async function POST(request: NextRequest) {
         if (!result.success) {
           return NextResponse.json({ error: result.error }, { status: 400 });
         }
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Cuenta vinculada correctamente' 
+        return NextResponse.json({
+          success: true,
+          message: 'Cuenta vinculada correctamente',
+          chatId: result.chatId
+        });
+      }
+
+      case 'unlink': {
+        const result = await handleUnlink(user.id);
+        if (!result.success) {
+          return NextResponse.json({ error: result.error }, { status: 400 });
+        }
+        return NextResponse.json({
+          success: true,
+          message: 'Cuenta desvinculada'
         });
       }
 
