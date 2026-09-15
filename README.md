@@ -1,23 +1,37 @@
-# Finance PWA
+# VICKY — App financiera PWA + bot de Telegram
 
-Una aplicación web progresiva para la gestión de finanzas personales.
+Aplicación web progresiva para la gestión de finanzas personales con registro de gastos
+por Telegram y un espejo completo en la app.
 
-## Tecnologías
+- **Documentación**: todo vive en [`docs/`](./docs/README.md) — producto, spec y planes.
+- **Doc de producto**: [`docs/producto.md`](./docs/producto.md)
 
-- **Core**: Next.js, React
-- **Estilos**: Tailwind CSS
-- **Backend**: Supabase
-- **Notificaciones**: Telegram Bot API
+## Requisitos
 
-## Instalación Local
+- Node.js 18+
+- Cuenta de Supabase (proyecto `vicky`)
 
-1. Clona el repositorio.
-2. Instala las dependencias:
+## Instalación local
+
+1. Instalá las dependencias:
    ```bash
    npm install
    ```
-3. Configura las variables de entorno en un archivo `.env.local`.
-4. Corre el servidor de desarrollo:
+2. Configurá las variables de entorno en un archivo `.env.local` (ver `.env.example`).
+3. Corré el servidor de desarrollo:
    ```bash
    npm run dev
    ```
+
+## Scripts
+
+| Comando         | Descripción                  |
+| --------------- | ---------------------------- |
+| `npm run dev`   | Servidor de desarrollo       |
+| `npm run build` | Build de producción          |
+| `npm run start` | Servidor de producción       |
+| `npm run lint`  | Lint                         |
+
+## Stack
+
+Next.js 14 · React 18 · TypeScript · Tailwind CSS 4 · Supabase (RLS) · Telegram Bot API
