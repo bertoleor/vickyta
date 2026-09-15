@@ -47,3 +47,32 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+
+  secrets:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  security-scasbom:
+    name: Trivy SCA/SBOM
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run Trivy
+        uses: aquasec/trivy-action@master
+        with:
+          scan-type: fs
+          path: .
+          exit-code: 1
+          ignore-unfixed: true
