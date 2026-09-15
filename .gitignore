@@ -42,3 +42,7 @@ next-env.d.ts
 *.swp
 *.swo
 nul
+
+# Supabase local temp
+supabase/.temp/
+package-lock.json
