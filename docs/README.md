@@ -11,6 +11,10 @@ Empezá por acá y navegá hacia lo que necesites.
 
 - **[Spec del dueño](spec.md)** — descripción original del producto (fuente autorizada, 2026-09-14).
 
+## Referencias
+
+- **[Repos relacionados](07-repos-relacionados.md)** — finanzas PWA + bots de Telegram para gastos (qué copiar para VICKY).
+
 ## Planes y auditorías
 
 - **[Integración con Telegram](plans/implementacion-telegram.md)** — plan en 6 pasos para la vinculación y el flujo del bot.
