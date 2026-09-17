@@ -13,6 +13,8 @@ import {
   LogOut,
   X,
   Menu,
+  BarChart3,
+  Repeat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut, getCurrentUser } from "@/lib/auth/actions";
@@ -50,11 +52,23 @@ const navItems: NavItem[] = [
     description: "Cargar ingresos por trabajo",
   },
   {
-    label: "Historial",
-    href: "/historial",
-    icon: History,
-    description: "Movimientos anteriores",
-  },
+      label: "Historial",
+      href: "/historial",
+      icon: History,
+      description: "Movimientos anteriores",
+    },
+    {
+      label: "Comparación",
+      href: "/comparacion",
+      icon: BarChart3,
+      description: "Mes contra mes",
+    },
+    {
+      label: "Cuotas",
+      href: "/cuotas",
+      icon: Repeat,
+      description: "Cuotas y recurrentes",
+    },
   {
     label: "Presupuestos",
     href: "/presupuestos",

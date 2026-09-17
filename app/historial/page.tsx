@@ -5,6 +5,7 @@ import { GlassCard, GlassCardContent } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { TransactionDetailsModal } from "@/components/ui/TransactionDetailsModal";
+import { EditTransactionModal } from "@/components/ui/EditTransactionModal";
 import { 
   History, 
   TrendingDown,
@@ -14,6 +15,7 @@ import {
   Download
 } from "lucide-react";
 import { getTransactions, getCategories, getAccounts } from "@/lib/actions";
+import { deleteTransaction } from "@/lib/actions/transactions";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { formatCurrency } from "@/lib/constants";
 import type { Transaction, Category, Account } from "@/types/database";
@@ -37,29 +39,39 @@ export default function HistorialPage() {
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
+    const [selectedTransaction, setSelectedTransaction] = useState<typeof transactions[0] | null>(null);
+    const [editingTransaction, setEditingTransaction] = useState<typeof transactions[0] | null>(null);
+    const [userId, setUserId] = useState<string>("");
 
   // Load data
-  useEffect(() => {
-    async function loadData() {
-      const userData = await getCurrentUser();
+    useEffect(() => {
+      async function loadData() {
+        const userData = await getCurrentUser();
       
-      if (userData?.id) {
-        const [txResult, catResult, accResult] = await Promise.all([
-          getTransactions(userData.id, { limit: 500 }),
-          getCategories(),
-          getAccounts(userData.id),
-        ]);
+        if (userData?.id) {
+          const [txResult, catResult, accResult] = await Promise.all([
+            getTransactions(userData.id, { limit: 1000 }),
+            getCategories(),
+            getAccounts(userData.id),
+          ]);
         
-        setTransactions(txResult.data || []);
-        setCategories(catResult.data || []);
-        setAccounts(accResult.data || []);
-      }
+          setUserId(userData.id);
+          setTransactions(txResult.data || []);
+          setCategories(catResult.data || []);
+          setAccounts(accResult.data || []);
+        }
       
-      setLoading(false);
-    }
-    loadData();
-  }, []);
+        setLoading(false);
+      }
+      loadData();
+    }, []);
+
+    // Reload transactions after edit/delete
+    const reloadTransactions = async () => {
+      if (!userId) return;
+      const txResult = await getTransactions(userId, { limit: 1000 });
+      setTransactions(txResult.data || []);
+    };
 
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
@@ -384,18 +396,28 @@ export default function HistorialPage() {
                         {item.description || "Sin descripción"}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-text-muted capitalize">
-                          {getTransactionTypeLabel(item.type)}
-                        </span>
-                        {item.category_id && (
-                          <>
-                            <span className="text-text-muted">•</span>
-                            <span className="text-xs text-text-muted">
-                              {getCategoryName(item.category_id)}
-                            </span>
-                          </>
-                        )}
-                      </div>
+                                              <span className="text-xs text-text-muted capitalize">
+                                                {getTransactionTypeLabel(item.type)}
+                                              </span>
+                                              {(item.is_installment || item.is_recurring) && (
+                                                <>
+                                                  <span className="text-text-muted">•</span>
+                                                  <span className="text-xs font-medium text-primary">
+                                                    {item.is_recurring && "Recurrente"}
+                                                    {item.is_installment && item.current_installment && item.total_installments &&
+                                                      `Cuota ${item.current_installment}/${item.total_installments}`}
+                                                  </span>
+                                                </>
+                                              )}
+                                              {item.category_id && (
+                                                <>
+                                                  <span className="text-text-muted">•</span>
+                                                  <span className="text-xs text-text-muted">
+                                                    {getCategoryName(item.category_id)}
+                                                  </span>
+                                                </>
+                                              )}
+                                            </div>
                     </div>
                     <div className={`text-sm font-semibold ${item.type === "ingreso" ? "text-emerald-600" : "text-amber-600"}`}>
                       {item.type === "ingreso" ? "+" : "-"}{formatCurrency(item.amount)}
@@ -421,12 +443,37 @@ export default function HistorialPage() {
       )}
 
       {/* Transaction Details Modal */}
-      {selectedTransaction && (
-        <TransactionDetailsModal 
-          transaction={selectedTransaction}
-          onClose={() => setSelectedTransaction(null)}
-        />
-      )}
-    </div>
-  );
-}
+            {selectedTransaction && (
+              <TransactionDetailsModal 
+                transaction={selectedTransaction}
+                onClose={() => setSelectedTransaction(null)}
+                onEdit={() => {
+                  setEditingTransaction(selectedTransaction);
+                  setSelectedTransaction(null);
+                }}
+                onDelete={async () => {
+                  if (!userId) return;
+                  await deleteTransaction(selectedTransaction.id, userId);
+                  setSelectedTransaction(null);
+                  await reloadTransactions();
+                }}
+              />
+            )}
+
+            {/* Edit Transaction Modal */}
+            {editingTransaction && (
+              <EditTransactionModal
+                transaction={editingTransaction}
+                categories={categories}
+                accounts={accounts}
+                userId={userId}
+                onClose={() => setEditingTransaction(null)}
+                onSaved={async () => {
+                  setEditingTransaction(null);
+                  await reloadTransactions();
+                }}
+              />
+            )}
+          </div>
+        );
+      }

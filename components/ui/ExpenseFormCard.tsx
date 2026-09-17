@@ -55,7 +55,10 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo');
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [destinationAccount, setDestinationAccount] = useState<string | null>(null);
-  const [tag, setTag] = useState<TrafficLight | null>(null);
+    const [tag, setTag] = useState<TrafficLight | null>(null);
+    const [isInstallment, setIsInstallment] = useState(false);
+    const [currentInstallmentNumber, setCurrentInstallmentNumber] = useState(1);
+    const [totalInstallmentsNumber, setTotalInstallmentsNumber] = useState(1);
   
   // Transaction type
   const [transactionType, setTransactionType] = useState<TransactionType>('gasto');
@@ -144,32 +147,35 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
 
     try {
       const result = await addTransaction({
-        user_id: '',
-        account_id: selectedAccount || '',
-        destination_account_id: transactionType === 'transferencia_interna' ? destinationAccount : null,
-        category_id: selectedCategory,
-        amount: Number.parseFloat(amount),
-        date,
-        description,
-        type: transactionType,
-        method: paymentMethod,
-        is_installment: false,
-        current_installment: null,
-        total_installments: null,
-        is_recurring: false,
-        recurring_frequency: null,
-        tag,
-      });
+              user_id: '',
+              account_id: selectedAccount || '',
+              destination_account_id: transactionType === 'transferencia_interna' ? destinationAccount : null,
+              category_id: selectedCategory,
+              amount: Number.parseFloat(amount),
+              date,
+              description,
+              type: transactionType,
+              method: paymentMethod,
+              is_installment: isInstallment && transactionType === 'gasto' && paymentMethod === 'credito',
+              current_installment: isInstallment && transactionType === 'gasto' && paymentMethod === 'credito' ? currentInstallmentNumber : null,
+              total_installments: isInstallment && transactionType === 'gasto' && paymentMethod === 'credito' ? totalInstallmentsNumber : null,
+              is_recurring: false,
+              recurring_frequency: null,
+              tag,
+            });
 
-      if (result.error) {
-        setError(result.error);
-      } else {
-        // Reset form
-        setAmount("");
-        setDescription("");
-        setSelectedCategory(null);
-        setTag(null);
-        setShowDetails(false);
+            if (result.error) {
+              setError(result.error);
+            } else {
+              // Reset form
+              setAmount("");
+              setDescription("");
+              setSelectedCategory(null);
+              setTag(null);
+              setIsInstallment(false);
+              setCurrentInstallmentNumber(1);
+              setTotalInstallmentsNumber(1);
+              setShowDetails(false);
         setTransactionType('gasto');
         onSuccess?.();
       }
@@ -367,29 +373,70 @@ export function ExpenseFormCard({ onSuccess }: ExpenseFormCardProps) {
           </fieldset>
 
           {/* Account Selection */}
-          {paymentMethod !== 'efectivo' && transactionType !== 'transferencia_interna' && (
-            <fieldset>
-              <legend id="account-selection-label" className="text-xs text-text-muted mb-2 block">Cuenta</legend>
-              <div className="grid grid-cols-2 gap-2">
-                {accounts
-                  .filter(a => a.type === 'banco' || a.type === 'billetera_virtual')
-                  .map(acc => (
-                    <button
-                      key={acc.id}
-                      onClick={() => setSelectedAccount(acc.id)}
-                      className={`p-2 rounded-lg text-left text-sm transition-all ${
-                        selectedAccount === acc.id
-                          ? 'bg-primary text-white'
-                          : 'bg-white text-text-secondary border border-border-light'
-                      }`}
-                    >
-                      <div className="font-medium">{acc.name}</div>
-                      <div className="text-xs opacity-70">{formatCurrency(acc.balance)}</div>
-                    </button>
-                  ))}
-              </div>
-            </fieldset>
-          )}
+                    {paymentMethod !== 'efectivo' && transactionType !== 'transferencia_interna' && (
+                      <fieldset>
+                        <legend id="account-selection-label" className="text-xs text-text-muted mb-2 block">Cuenta</legend>
+                        <div className="grid grid-cols-2 gap-2">
+                          {accounts
+                            .filter(a => a.type === 'banco' || a.type === 'billetera_virtual' || a.type === 'tarjeta_credito')
+                            .map(acc => (
+                              <button
+                                key={acc.id}
+                                onClick={() => setSelectedAccount(acc.id)}
+                                className={`p-2 rounded-lg text-left text-sm transition-all ${
+                                  selectedAccount === acc.id
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white text-text-secondary border border-border-light'
+                                }`}
+                              >
+                                <div className="font-medium">{acc.name}</div>
+                                <div className="text-xs opacity-70">{formatCurrency(acc.balance)}</div>
+                              </button>
+                            ))}
+                        </div>
+                      </fieldset>
+                    )}
+
+                    {/* Cuotas (solo gasto con crédito) */}
+                    {transactionType === 'gasto' && paymentMethod === 'credito' && (
+                      <fieldset>
+                        <label className="flex items-center gap-2 text-xs text-text-muted mb-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isInstallment}
+                            onChange={(e) => setIsInstallment(e.target.checked)}
+                            className="h-5 w-5 accent-primary"
+                          />
+                          Es en cuotas
+                        </label>
+                        {isInstallment && (
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <label htmlFor="cuota-actual" className="text-xs text-text-muted mb-1 block">Cuota n°</label>
+                              <input
+                                id="cuota-actual"
+                                type="number"
+                                min={1}
+                                value={currentInstallmentNumber}
+                                onChange={(e) => setCurrentInstallmentNumber(Number(e.target.value))}
+                                className="w-full h-10 px-3 bg-white rounded-lg border border-border-light text-sm"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label htmlFor="cuota-total" className="text-xs text-text-muted mb-1 block">Cuotas totales</label>
+                              <input
+                                id="cuota-total"
+                                type="number"
+                                min={1}
+                                value={totalInstallmentsNumber}
+                                onChange={(e) => setTotalInstallmentsNumber(Number(e.target.value))}
+                                className="w-full h-10 px-3 bg-white rounded-lg border border-border-light text-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </fieldset>
+                    )}
 
           {/* Transfer accounts */}
           {transactionType === 'transferencia_interna' && (

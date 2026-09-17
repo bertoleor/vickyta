@@ -1,8 +1,9 @@
 # openspec.config.yaml — contrato de calibración SDD Init (GATE-CFG-01/02/03)
 # Generado 2026-09-15 por inspección del repo. Si cambia el stack o aparecen
 # nuevos runners, re-calibrar antes de arrancar cualquier cambio.
-# NOTA: sin test runner detectado (sin scripts de test ni vitest/playwright) —
-# strict_tdd en false (GATE-CFG-02: TDD no aplicable hasta agregar runner).
+# NOTA: runner calibrado 2026-09-16 (VICKY-P2): vitest + jsdom + RTL instalados,
+# script `npm test` → `vitest run`. Suite mínima en __tests__/ (formatMoneyARS + Button smoke).
+# strict_tdd ya habilitable: cualquier cambio toggla a true para exigir RED→GREEN.
 proyecto: VICKY
 stack:
   - nextjs-14
@@ -10,8 +11,10 @@ stack:
   - typescript
   - nodejs
   - npm
-runners: {}
-strict_tdd: false
+runners:
+  unit: vitest
+  "unit.env": jsdom
+strict_tdd: true
 convenciones:
   - typescript-strict
   - tsconfig
