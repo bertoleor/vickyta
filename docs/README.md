@@ -1,4 +1,5 @@
 # Documentación — VICKY
+> Parte de: [[projects/Vicky/README]] · Relacionados: [[producto]], [[projects/Vicky/docs/spec]], [[bot-telegram]]
 
 Bienvenida/o al centro de documentación de **VICKY**, la app financiera PWA + bot de Telegram.
 Empezá por acá y navegá hacia lo que necesites.

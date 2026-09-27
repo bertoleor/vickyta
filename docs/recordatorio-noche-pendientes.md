@@ -3,6 +3,7 @@
 > Micro-feature docs-only de ejemplo (calibración SDD 2026-09-15).
 > Contrato: `openspec/changes/recordatorio-noche-pendientes/`.
 > Fuente de dominio: `docs/spec.md` (flujo Después).
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[bot-telegram]], [[producto]], [[projects/Vicky/docs/spec]]
 
 ## Problema
 

@@ -2,6 +2,7 @@
 
 > Doc de producto. Fuente autorizada: [`spec.md`](./spec.md) (spec del dueño, 2026-09-14).
 > Estado: fase 0 (base de datos) aplicada; fases 1-5 pendientes de implementar (ver [Roadmap](#roadmap)).
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[projects/Vicky/docs/spec]], [[arquitectura]], [[bot-telegram]]
 
 ## Qué es
 

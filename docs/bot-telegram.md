@@ -1,6 +1,7 @@
 # Bot de Telegram — funciones — VICKY
 
 > Verificado en `app/api/telegram/route.ts` (webhook + máquina de estados), `app/api/telegram/verify/route.ts` (vinculación), `supabase/migrations/0002_telegram.sql`, tablas `telegram_users/messages/sessions`. Plan pendiente: [`plans/implementacion-telegram.md`](./plans/implementacion-telegram.md).
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[pwa]], [[producto]], [[implementacion-telegram]]
 
 ## Idea
 

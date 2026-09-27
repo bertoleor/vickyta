@@ -1,4 +1,5 @@
 # 🔍 Auditoría Completa - Finance PWA
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[auditoria]], [[auditoria-completa-2025]]
 
 ## Estado Actual del Proyecto (Resumido)
 

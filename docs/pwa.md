@@ -1,6 +1,7 @@
 # PWA — funciones — VICKY
 
 > Verificado en `public/manifest.json`, `public/sw.js`, `public/offline.html`, `app/layout.tsx`, `app/components/ServiceWorkerRegistration.tsx`.
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[producto]], [[bot-telegram]], [[projects/Vicky/docs/branding]]
 
 ## Qué es la PWA
 

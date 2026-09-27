@@ -1,6 +1,7 @@
 # VICKY — App financiera PWA + bot Telegram (spec del dueño 2026-09-14)
 
 > Fuente: descripción directa del dueño. Estado: SPEC, no implementado. DB: proyecto `vicky` (token 4, org token-4) desde cero. Costo cero.
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[producto]], [[arquitectura]], [[bot-telegram]]
 
 ## Objetivo
 

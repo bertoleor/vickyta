@@ -1,4 +1,5 @@
 # 🔍 Auditoría de la Aplicación Finance PWA
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[auditoria-completa]], [[auditoria-completa-2025]]
 
 ## Estado Actual del Proyecto
 

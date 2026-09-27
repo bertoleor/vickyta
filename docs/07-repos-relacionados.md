@@ -1,6 +1,7 @@
 # 07 — Repos relacionados — VICKY
 
 > Referencias externas para inspirarte y no reinventar. Nada de acá está vendorizado en VICKY: son ideas probadas para copiar patrones (flujos, UX, esquemas) cuando implementes las fases pendientes. Fuentes verificadas por búsqueda web (2026-09-15).
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[producto]], [[bot-telegram]], [[pwa]]
 
 ## A. Finanzas personales / PWA (espejo web)
 

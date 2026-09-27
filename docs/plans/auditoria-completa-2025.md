@@ -1,4 +1,5 @@
 # 🔍 Auditoría Completa del Proyecto Finance PWA
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[auditoria]], [[auditoria-completa]]
 
 **Fecha de auditoría:** 15 de marzo de 2026  
 **Versión del proyecto:** v1.8 • Ornellita Experience  

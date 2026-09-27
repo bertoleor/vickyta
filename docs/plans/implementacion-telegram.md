@@ -1,4 +1,5 @@
 # 📋 Plan de Implementación - Integración con Telegram
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[bot-telegram]], [[pwa]]
 
 ## Estado Actual
 

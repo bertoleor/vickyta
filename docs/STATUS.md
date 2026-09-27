@@ -1,4 +1,5 @@
 # STATUS — PWA + bot Telegram
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[pwa]], [[bot-telegram]], [[implementacion-telegram]]
 
 Tarjeta ORN-187 · Verificación ligera del cablado PWA y bot Telegram · 2026-09-15
 

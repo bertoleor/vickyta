@@ -1,6 +1,7 @@
 # Branding e identidad visual — VICKY
 
 > Verificado en `public/manifest.json`, `app/layout.tsx`, `app/globals.css`, `tailwind.config.ts`, `AccentColorSelector.tsx`, `ThemeProvider.tsx`, `lib/constants.ts`.
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[producto]], [[pwa]]
 
 ## Marca
 

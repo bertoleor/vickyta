@@ -1,6 +1,7 @@
 # Arquitectura — VICKY
 
 > Cómo se arma el proyecto. Complementa [`producto.md`](./producto.md) (qué es) y la [spec](./spec.md) (fuente autorizada).
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[producto]], [[projects/Vicky/docs/spec]], [[pwa]]
 
 ## Stack (verificado en `package.json`)
 
