@@ -1,0 +1,16 @@
+{
+  "tool": "rdd-receipt-mvp",
+  "at": "2026-09-27T18:06:05.378464+00:00",
+  "repo": "E:\\Hermes\\projects\\Vicky",
+  "base_head": "bdb70ea774967fbf444a962df73cb6375ba82b94",
+  "frozen_sha256": "f6c5cc74958a1c50950276e8e2f58ba18d3faf6751271727245d4228b5b87ff0",
+  "files": [
+    ".rls-coverage-runner.mjs",
+    ".vitest-shim.mjs",
+    "__tests__/db/rls-coverage.test.ts",
+    "lib/database.types.ts",
+    "supabase/migrations/0003_rls_policies_budgets.sql"
+  ],
+  "verdict": "Approved-staged",
+  "note": "MVP: firma hash de staging. El juicio 4R/refutador corre aparte y su veredicto se anexa con --annex."
+}

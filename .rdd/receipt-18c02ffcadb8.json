@@ -1,0 +1,14 @@
+{
+  "tool": "rdd-receipt-mvp",
+  "at": "2026-09-28T09:06:51.080338+00:00",
+  "repo": "E:\\Hermes\\projects\\Vicky",
+  "base_head": "809e813a9946c0d148b8f5c5d9951ef8643d6931",
+  "frozen_sha256": "18c02ffcadb8c84ea8c2e2db3144d7581c145dd0be2b7ab15be176bd5e9c61e6",
+  "files": [
+    ".github/workflows/ci.yml",
+    "lib/database.types.ts",
+    "tsconfig.json"
+  ],
+  "verdict": "Approved-staged",
+  "note": "MVP: firma hash de staging. El juicio 4R/refutador corre aparte y su veredicto se anexa con --annex."
+}
