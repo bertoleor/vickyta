@@ -107,6 +107,18 @@ export type TelegramSession = {
   updated_at: Date; // timestamptz → Date
 };
 
+export type PendingExpense = {
+  id: string; // uuid
+  chat_id: number; // bigint (64-bit integer)
+  amount: number; // numeric
+  description: string; // text
+  status: 'pendiente' | 'registrado' | 'descartado';
+  night_sent_at: Date | null; // timestamptz → Date
+  morning_sent_at: Date | null; // timestamptz → Date
+  created_at: Date; // timestamptz → Date
+  updated_at: Date; // timestamptz → Date
+};
+
 export type PendingTelegramMessage = {
   id: string; // uuid
   telegram_id: number; // bigint
