@@ -46,3 +46,6 @@ nul
 # Supabase local temp
 supabase/.temp/
 package-lock.json
+
+# rdd receipts (local)
+.rdd/
