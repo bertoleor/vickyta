@@ -7,7 +7,8 @@ import type { Database } from '@/types/database';
  * Uses @supabase/ssr for proper cookie handling in Next.js
  */
 export async function createClient() {
-  const cookieStore = cookies();
+  // next 15: cookies() es async — await antes de usar
+  const cookieStore = await cookies();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';

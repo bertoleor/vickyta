@@ -17,7 +17,8 @@ export default defineConfig({
     // Calibrado 2026-09-16 (VICKY-P2): pool forks + timeouts generosos son
     // más estables que threads en Windows bajo carga; evita rpc-timeout de /@vite/env.
     pool: "forks",
-    poolOptions: { forks: { singleFork: true } },
+    // vitest 4: poolOptions.forks.singleFork -> maxWorkers: 1
+    maxWorkers: 1,
     testTimeout: 30000,
     hookTimeout: 30000,
     teardownTimeout: 15000,
