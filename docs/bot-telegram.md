@@ -1,72 +1,88 @@
 # Bot de Telegram — funciones — VICKY
 
-> Verificado en `app/api/telegram/route.ts` (webhook + máquina de estados), `app/api/telegram/verify/route.ts` (vinculación), `supabase/migrations/0002_telegram.sql`, tablas `telegram_users/messages/sessions`. Plan pendiente: [`plans/implementacion-telegram.md`](./plans/implementacion-telegram.md).
-> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[pwa]], [[producto]], [[implementacion-telegram]]
+> **Búsqueda:** keywords: `telegram, bot, webhook, vinculacion, sesiones, flujo-ahora, pendientes, recordatorios, ahora-despues` · clasificación: `referencia-tecnica` · estado: `canónico` · actualizado: 2026-10-04
+> Parte de: [[projects/Vicky/docs/README]] · Relacionados: [[pwa]], [[producto]], [[implementacion-telegram]], [[recordatorio-noche-pendientes]], [[STATUS]]
+
+## Estado en una línea
+
+**Cableado hoy: webhook con flujo "ahora" (categoría → medio → banco → cuotas), 6 comandos, vinculación por código, sesiones en DB. No existe todavía: el flujo "Ahora o Después" con recordatorios — la capa pura está commiteada y testeada pero nadie la cablea — y el endpoint `POST /api/telegram/reminders`.**
+
+Este doc describe el código como ES (verificado 2026-10-04, rama `feat/vicky-f4-historial-resumen`); cada afirmación lleva archivo:línea o commit de respaldo. Lo pendiente está marcado como pendiente y apunta al plan. Corregido tras hallazgo H7 de la auditoría 2026-10-03 (t_6a5cbc60): la versión anterior documentaba el endpoint de recordatorios y el flujo "Ahora o Después" como verificados cuando no existían.
 
 ## Idea
 
-Todo gasto se carga escribiendo **monto + frase** (queda en observaciones). El bot guía paso a paso, en voseo, un paso por vez. La app es el espejo; el bot es la carga diaria.
+Todo gasto se carga escribiendo **monto + frase** (queda en descripción). El bot guía paso a paso, en voseo, un paso por vez. La app es el espejo; el bot es la carga diaria.
 
-## Flujo "ahora o después" (ORN-108)
+## Flujo "ahora" — máquina de estados (cableado)
 
-La spec completa del dueño es "`amount` + `description` → ¿Ahora o después?":
+Estados: `START → CATEGORY → METHOD → BANK → INSTALLMENTS → COMPLETE` (+ `VERIFY` para vinculación) — enum en `app/api/telegram/route.ts:62`, persistidos en `telegram_sessions`.
 
-1. La usuaria manda ej. `4500 verdulería` → se parsea y guarda `amount` + `description` en sesión.
-2. Antes de categoría, el bot pregunta: **"✅ Ahora — $4.500 (verdulería)"** o **"⏳ Después (te recuerdo)"**.
-3. Si elige **Ahora**: continúa con el flujo normal (categoría → método → ...).
-4. Si elige **Después**:
-   - Se inserta una fila en `pending_expenses` (chat_id, amount, description, status=`pendiente`).
-   - El bot **no continúa con categoría**: cierra la sesión y la gasto queda olvidado por el bot.
-5. **Recordatorios**:
-   - **20:30 del día de creación** (ventana noche): `/api/telegram/reminders` manda un mensaje con 2 botones — "✅ Registrar" / "🚫 Descartar."
-   - **09:30 del día siguiente** (ventana mañana): si todavía sigue pendiente y no se mandó, /api/telegram/reminders manda el mismo mensaje con botones.
-   - Un gasto nunca recibe 2 recordatorios el mismo día; la ventana noche 20:30 y la ventana mañana 09:30 son los dos momentos (horario Argentina, -03 fijo).
+1. La usuaria manda ej. `4500 verdulería` → `parseExpenseMessage` (`route.ts:412-427`, acepta `1.500` y `1,500`) guarda monto y descripción en la sesión y salta directo a `CATEGORY` (`route.ts:645-673`).
+2. Categoría: 5 macro hardcodeadas con emoji (`route.ts:82-88`): 🛒 Súper y Alimentos, 🚗 Trabajo y Transporte, 🏠 Casa y Servicios, ☕ Extras y Hormiga, 🏦 Deudas y Bancos. ⚠️ Los IDs son strings (`cat-super`), no UUIDs — hoy rompe FK al guardar (defecto P1, ver §Defectos conocidos).
+3. Medio — 6 opciones (`route.ts:90-97`): 💵 efectivo, 💳 débito, 🏦 crédito, 📲 QR, 💸 transferencia, 📉 descubierto.
+4. Banco (si el medio lo pide): 5 hardcodeados (`route.ts:99-105`: Galicia, Nación, Provincia, Santander, Mercado Pago); si ninguno matchea, cae a la primera cuenta del usuario (`resolveAccountId`, `route.ts:769-774`).
+5. Cuotas si es crédito: 1, 3, 6, 12 (`route.ts:107`).
+6. Guarda vía `addTransaction` (`route.ts:809`, server action de `lib/actions/transactions`) y confirma. `/cancelar` limpia la sesión (`route.ts:588-591`).
 
-## Flujo "ahora" (máquina de estados en `telegram_sessions`)
-
-`START → CATEGORY → METHOD → BANK → INSTALLMENTS → COMPLETE` (+ `VERIFY` para vinculación).
-
-1. La usuaria elige **Ahora** (o manda un gasto sin interpretar "después").
-2. El bot pregunta categoría (5 macro con emoji: 🛒 Súper y Alimentos, 🚗 Trabajo y Transporte, 🏠 Casa y Servicios, ☕ Extras y Hormiga, 🏦 Deudas y Bancos).
-3. Pregunta medio (💵 efectivo, 💳 débito, 🏦 crédito, 📲 QR, 💸 transferencia, 📉 descubierto).
-4. Si el medio lo pide, selector de cuenta/banco propio (Galicia, Nación, Provincia, Santander, Mercado Pago, más cuentas de `accounts`).
-5. Si es crédito, ofrece cuotas (1, 3, 6, 12).
-6. Guarda la transacción en Supabase vía `service_role` y confirma. `/cancelar` aborta y limpia la sesión.
-
-> Nota: la spec del dueño describe una variante "¿Ahora o después?" con pendientes + recordatorio tarde/noche y aviso a la mañana siguiente. El código actual implementa el flujo "ahora" directo; el "después"/recordatorios es trabajo pendiente (ver plan).
-
-## Comandos
+## Comandos (los 6 que existen — switch en `route.ts:875-896`)
 
 | Comando | Función |
 | ------- | ------- |
-| `/start` | Bienvenida; si no hay vínculo pide vincular desde la app (Configuración → Notificaciones) |
-| `/hoy` | Gastos del día |
-| `/saldos` | Balances por cuenta |
-| `/cancelar` | Cancela el flujo en curso |
+| `/start` | Bienvenida; registra/actualiza al usuario en `telegram_users` (`route.ts:486-519`) |
+| `/hoy` | Gastos del día + botón eliminar del último (`route.ts:521-555`) |
+| `/saldos` | Balances por cuenta (`route.ts:557-586`) |
+| `/vincular` | Genera código de 6 dígitos y lo manda al chat (`route.ts:596-625`) |
+| `/ayuda` | Lista de comandos (`route.ts:630-643`) |
+| `/cancelar` | Cancela el flujo en curso y limpia sesión (`route.ts:588-591`) |
 
-## Vinculación app ↔ Telegram
+## Vinculación app ↔ Telegram (cableada)
 
-1. La usuaria pide un código en la app (`/api/telegram/verify` → `generateVerificationCode`, 4 dígitos con expiración en `telegram_sessions`).
-2. Manda el código al bot → el bot valida (`verifyCode`) y guarda `telegram_users.telegram_id ↔ user_id`.
-3. Desde entonces el bot opera sobre sus cuentas reales.
+Endpoint real: `POST /api/telegram/verify` (autenticado — `verify/route.ts:304-312`), con 3 acciones (`verify/route.ts:321-358`):
+
+1. **`request`**: la usuaria pone su usuario de Telegram en la app (`app/configuracion/notificaciones/NotificationSettings.tsx`). El backend busca la fila `telegram_users` capturada por el bot cuando la usuaria mandó `/start`, genera un código de **6 dígitos** con expiración de 10 minutos (`verify/route.ts:55-61`) en `telegram_sessions.step='VERIFY'` y lo manda al chat de Telegram.
+2. **`verify`**: valida el código, linkea `telegram_users.telegram_id ↔ user_id`, habilita notificaciones y borra la sesión (`verify/route.ts:196-248`).
+3. **`unlink`**: desvincula (`verify/route.ts:254-298`).
+
+El bot también ofrece `/vincular` (genera el código desde el chat), pero el flujo canónico arranca desde la app. El upsert de sesiones depende del `UNIQUE(chat_id)` reparado por la migración `0005_telegram_sessions_unique.sql` (commit f8ecb2c, 2026-10-03).
 
 ## Webhook y seguridad
 
-- `POST /api/telegram` (bypass de `middleware.ts`). Valida `TELEGRAM_WEBHOOK_SECRET` por query `token` o header `x-telegram-webhook-secret`; opcional `TELEGRAM_ALLOWED_USERS`.
-- Requiere `TELEGRAM_BOT_TOKEN` (+ `NEXT_PUBLIC_SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`) en `.env.local` (ver `.env.example`).
-- Cada update se loguea en `telegram_messages` (`pending`/`processed`/`error` + `raw_update`); el bot usa `service_role` porque las tablas Telegram no son por `auth.uid()`.
-- Config del webhook: `setWebhook` a `https://<dominio>/api/telegram?token=<secreto>` (hay plan de endpoint `/api/telegram/setup`, aún no existe).
+- `POST /api/telegram` con bypass de middleware por prefijo `'/api/telegram'` (`middleware.ts:19`, `BYPASS_ROUTES` via `startsWith`).
+- Valida `TELEGRAM_WEBHOOK_SECRET` por query `token` o header `x-telegram-webhook-secret` (`route.ts:113-122`) — pero es **fail-open**: sin la variable seteada acepta cualquier request (defecto P2).
+- `TELEGRAM_ALLOWED_USERS` filtra solo mensajes, no `callback_query` (`route.ts:862-867` vs `:849-851`) (defecto P2).
+- Opera con `SUPABASE_SERVICE_ROLE_KEY` (bypass RLS) porque las tablas Telegram no son por `auth.uid()` (`route.ts:9-13`).
+- Updates entrantes: solo `console.log` (`route.ts:846`). **No se persisten en `telegram_messages`** — la tabla existe (`0002_telegram.sql:52`) pero el webhook no la escribe ni la lee.
+- Config del webhook: `setWebhook` manual a `https://<dominio>/api/telegram?token=<secreto>`. No existe endpoint `/api/telegram/setup`.
+- Env vars: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_ALLOWED_USERS` + las de Supabase — las 6 documentadas en `.env.example` (checker `npm run check:env-docs` + test `__tests__/env-wiring`, commit eade033).
 
-## Endpoint de recordatorios (`POST /api/telegram/reminders`)
+## Flujo "Ahora o Después" (ORN-108) — PLANIFICADO, no cableado
 
-- Exige header `x-cron-secret` o query `secret` igual a `TELEGRAM_REMINDER_SECRET` (service-role-only, nunca expuesto al cliente).
-- Selecciona pendientes cuya ventana (noche 20:30 día de creación, mañana 09:30 día siguiente local) ya llegó y no fue enviada.
-- Reglas: sólo 1 recordatorio por pendiente por ventana; si ya se mandó la mañana siguiente, no manda de nuevo.
-- Mensaje con `inline_keyboard`: `pend:registrar:<id>` / `pend:descartar:<id>`.
-- Marca `night_sent_at` / `morning_sent_at` para que no repita.
-- NO debe expeler 2 recordatorios el mismo día.
-- VOZ: español rioplatense, sin abuso de emoji.
+La spec del dueño (`docs/spec.md:13`) define: después de monto + descripción, preguntar **"✅ Ahora / ⏳ Después"**; "Después" guarda en `pending_expenses` y un recordatorio llega en dos ventanas — **20:30 del mismo día** y **09:30 del día siguiente** (horario Argentina) — con botones Registrar/Descartar.
 
-## Pendiente (no inventar como hecho)
+**Lo que existe (commiteado):**
 
-Vinculación real end-to-end con código, recordatorios "después" (tarde/noche + mañana siguiente) y tests del plan de 6 pasos. Estado actual: flujo base + comandos + tablas existen; falta token/webhook en producción y verificación real.
+- Tabla `pending_expenses` — migración `supabase/migrations/0004_pending_expenses.sql` (+down), RLS + policy service_role, índice parcial por chat (commit bf0c24f).
+- Types `PendingExpense` — `lib/database.types.ts:110` (commit 1695ef1).
+- Capa pura `lib/telegram/flow.ts` (393 líneas, commit ceebe7f): `parseExpenseMessage` (:21), `getTimingKeyboard` (:43), `buildPendingExpenseRow` (:83), `selectDueReminders` (:143, ventana silencio 09:30–21:00 local; noche stale la supersede la mañana), `getReminderKeyboard` (:213), `buildReminderMessage` (:230), `resolvePendCallback` (:280), `resolveReminderWindow` (:369) — con 3 archivos de tests (`__tests__/telegram/{flow,pend-callbacks,reminders-due}.test.ts`, commit ceebe7f declara 18 tests verdes).
+
+**Lo que NO existe (verificado 2026-10-04):**
+
+- El webhook **nunca importa** `flow.ts` — 0 referencias en `app/` (grep `telegram/flow` sobre `app/`).
+- No hay pregunta "¿Ahora o Después?" en el flujo real: un gasto parseado va directo a `CATEGORY` (`route.ts:662-672`).
+- El endpoint `POST /api/telegram/reminders` **no existe** — `app/api/telegram/` solo contiene `route.ts` y `verify/`.
+- Los callbacks `pend:registrar:<id>` / `pend:descartar:<id>` no tienen handler en el webhook.
+- No hay cron/scheduler registrado que dispare recordatorios.
+
+Plan y diseño: [`plans/implementacion-telegram.md`](./plans/implementacion-telegram.md) (pasos base) y [`recordatorio-noche-pendientes.md`](./recordatorio-noche-pendientes.md) (ventanas y copy). Seguimiento de tareas: [`odd/tasks/vicky-f2-bot-ahora-despues.md`](../odd/tasks/vicky-f2-bot-ahora-despues.md).
+
+## Defectos conocidos del código (no de este doc)
+
+De la auditoría 2026-10-03 (kickoff t_5bfcd0ed; detalle y tickets en [[STATUS]]):
+
+| Sev | Defecto | Dónde |
+| --- | --- | --- |
+| P0 | Data path roto: server actions usan client anon sin sesión → RLS bloquea TODO guardado (web y bot) | `lib/supabase/client` ← `lib/actions/*`; bot vía `addTransaction` (`route.ts:809`) |
+| P1 | `category_id` strings no-UUID (`cat-super`) → FK violation al guardar; bancos hardcodeados con fallback a la primera cuenta | `route.ts:82-88` + `:802`; `:769-774` |
+| P2 | Webhook fail-open sin secret; allowlist no cubre callbacks; `delete:<id>` sin ownership check; HTML injection en descripción | `route.ts:113-122`, `:849-867`, `:748-756` |
+
+Cuando uno de estos se arregle, actualizar esta tabla (y la de [[STATUS]]).
