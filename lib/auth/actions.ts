@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { loginRateLimiter } from '@/lib/auth/rate-limit';
 
 /**
  * User mapping configuration
@@ -35,8 +36,6 @@ const USER_MAP: Record<string, { email: string; displayName: string }> = {
  * @returns Error message or redirects on success
  */
 export async function login(formData: FormData): Promise<{ error?: string } | void> {
-  const supabase = await createClient();
-
   // Extract form values
   const usernameEntry = formData.get('username');
   const pinEntry = formData.get('pin');
@@ -55,6 +54,18 @@ export async function login(formData: FormData): Promise<{ error?: string } | vo
     return { error: 'Credenciales incorrectas' };
   }
 
+  // Rate limit: key by the mapped email so the three aliases share one
+  // bucket; unknown usernames use their own bucket and cannot lock out the
+  // real user. Check is fail-closed: a locked-out identity never reaches
+  // Supabase Auth (t_cdb1bc45).
+  const rateKey = userMapping.email;
+  const decision = loginRateLimiter.check(rateKey);
+  if (decision.blocked) {
+    return { error: decision.message };
+  }
+
+  const supabase = await createClient();
+
   // Attempt to sign in with Supabase Auth
   const { error } = await supabase.auth.signInWithPassword({
     email: userMapping.email,
@@ -63,12 +74,14 @@ export async function login(formData: FormData): Promise<{ error?: string } | vo
 
   if (error) {
     console.error('Login error:', error.message);
+    loginRateLimiter.recordFailure(rateKey);
     
     // Generic error message for security
     return { error: 'Credenciales incorrectas' };
   }
 
-  // Success - redirect to dashboard
+  // Success — reset the counter, then redirect to dashboard
+  loginRateLimiter.recordSuccess(rateKey);
   redirect('/');
 }
 
