@@ -126,7 +126,7 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
-          format: cyclonedx-json
+          format: cyclonedx
           output: sbom.cdx.json
           exit-code: 0
       - name: Cosign install
