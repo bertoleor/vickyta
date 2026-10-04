@@ -17,9 +17,12 @@
  *  4. The `service_role` key is never the same as the `anon` key.
  *
  * Tickets: ORN-142 (.env.local a proyecto muerto — policies ya cerradas).
+ *          t_588291a4 (CI: suite era roja por diseño en GH Actions).
  *
- * Static test: parses dotenv files as text, runs anywhere, fails in CI or
- * locally the moment the env wiring drifts.
+ * Static test: parses dotenv files as text, runs anywhere, fails locally
+ * the moment the env wiring drifts. `.env.local` is gitignored, so it can
+ * never exist on a CI runner — GitHub Actions sets CI=true and the suite
+ * skips there instead of failing red forever. Local protection is intact.
  */
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
@@ -54,7 +57,10 @@ function parseDotenv(path: string): Record<string, string> {
   return out;
 }
 
-describe("env wiring: .env.local points at the live backend", () => {
+// GitHub Actions sets CI=true; .env.local never exists there (gitignored).
+const describeLocalEnv = process.env.CI ? describe.skip : describe;
+
+describeLocalEnv("env wiring: .env.local points at the live backend", () => {
   it(".env.local exists (copy .env.example and fill it in)", () => {
     expect(existsSync(ENV_LOCAL), "missing .env.local — copy .env.example and fill it with live values").toBe(true);
   });
