@@ -92,6 +92,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cache Trivy
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            trivy-${{ runner.os }}-
       - name: Run Trivy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -121,6 +128,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cache Trivy
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            trivy-${{ runner.os }}-
       - name: SBOM CycloneDX
         uses: aquasecurity/trivy-action@v0.36.0
         with:
