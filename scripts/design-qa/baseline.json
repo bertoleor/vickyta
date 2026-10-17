@@ -1,0 +1,13 @@
+{
+  "total": 39,
+  "per_dir": {
+    "app": 17,
+    "components": 22
+  },
+  "scan_dirs": [
+    "app",
+    "components"
+  ],
+  "taken_at": "2026-10-17",
+  "source_commit": "1f571d45664dc800be77585fd96d912cc4dee84a"
+}
